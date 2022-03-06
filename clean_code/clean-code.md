@@ -103,3 +103,21 @@
   - Did we re-factor our code before checking in?
 
 - **Neither architecture nor clean code insist on perfection, only on honesty and doing the best we can. *To err is human; to forgive, divine*. In Scrum, we make everything visible. We air our dirty laundry. We are honest about the state of our code because code is never perfect.**
+
+## Introduction
+
+- There are two parts of learning craftsmanship: knowledge and work.
+  
+  - You must gain the knowledge of principles, patterns, and heuristics that a craftsman knows.
+  
+  - You must also grind that knowledge into your fingers, eyes, and gut by working hard and practicing.
+
+- Learning to write clean code is *hard work*. It requires  more than just knowledge of principles and patterns. You must *sweat* over it.
+  
+  - You must practice it yourself, and watch yourself failed.
+  
+  - You must watch other practice it and fail. You must see them stumble and retrace their steps. You must see them agonize over decisions and see the price they pay for making those decisions the wrong way.
+
+- Think along the same paths that we thought, then you will gain a much richer understanding of those principles, patterns and heuristics.
+
+- They'll have become part of you in the same way that a bicycle becomes and extension of your will when you have mastered how to ride it.
