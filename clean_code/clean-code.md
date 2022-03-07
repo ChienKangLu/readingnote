@@ -121,3 +121,60 @@
 - Think along the same paths that we thought, then you will gain a much richer understanding of those principles, patterns and heuristics.
 
 - They'll have become part of you in the same way that a bicycle becomes and extension of your will when you have mastered how to ride it.
+
+## Chapter 1: Clean Code
+
+### There Will Be Code
+
+- We need better programmers.
+
+- We'll be able to tell the difference between good code and bad code.
+
+- We'll know how to transform bad code into good code.
+
+- Some have suggested that we are close to the end of code. Nonsense! We will never be rid of code, because code represents the details of the requirements.
+  
+  - Specifying requirements that machine can execute  is *programming*.
+  
+  - Such a specification is *code*.
+
+### Bad Code
+
+- They had rushed the product to market and had made a huge mess in the code. As they added more and more features, the code got worse and worse until they simply could not manage it any longer. *It was the bad code that brought the company down*.
+
+- Of course you have been impeded by bad code, So then - why did you write it?
+
+- *Later equals never*.
+
+### The total Cost of Owning a Mess
+
+- You have probably been slowed down by messy code. The degree of the slowdown can be significant.
+
+- As the mess builds, the productivity of the team continues to decrease, asymptotically approaching zero.
+
+### The Grand Redesign in the Sky
+
+Spending time keeping your code clean is not just cost effective; it's a matter of professional survival.
+
+```bash
+                                            --------------------------------
+                                            |                              |
+                                            v                              |
++------------------+      new team    +----------+               +-------------------------+
+| Odious code base | ---------------> | redesign | --10 years--> | new system is such mess |
++------------------+   |              +----------+               +-------------------------+
+                       |
+                       |  old team    +---------------------+
+                       -------------> | maintain old system |
+                                      +---------------------+
+```
+
+## Attitude
+
+- Why does good code rot so quickly into bad code? We are unprofessional
+
+- We are deeply complicit in the planning of project and share a great deal of the responsibility for any failure.
+
+- It's *your* job to defend the code with equal passion.
+
+- It's unprofessional for programmer to bend to the will of managers who don't understand the risks of making messes.
