@@ -171,10 +171,28 @@ Spending time keeping your code clean is not just cost effective; it's a matter 
 
 ## Attitude
 
-- Why does good code rot so quickly into bad code? We are unprofessional
+- Why does good code rot so quickly into bad code? We are unprofessional.
 
 - We are deeply complicit in the planning of project and share a great deal of the responsibility for any failure.
 
 - It's *your* job to defend the code with equal passion.
 
 - It's unprofessional for programmer to bend to the will of managers who don't understand the risks of making messes.
+
+## The Primal Conundrum
+
+- The *only* way to make the deadline - the only way to go fast - is to keep the code as clean as possible all the time.
+
+## The Art of Clean Code?
+
+- Writing clean code is a lot like painting a picture.
+
+- Being able to recognize clean code from dirty code does not mean that we know how to write clean code.
+
+- **Writing clean code requires the disciplined use of a myriad little techniques applied through a painstakingly acquired sense of "cleanliness". This "code-sense" is the key. Not only does it let us see whether code is good or bad, but it also shows us the strategy for applying our discipline to transform bad code into clean code.**
+
+- A programmer with "code-sense" will look at a messy module and see options and variations.
+
+- The "code-sense" will help that programmer choose the best variation and guide him or her to plot a sequence of behavior preserving transformation to get from here to there.
+
+- A programmer who writes clean code is an artist who can take a blank screen through a series of transformations until it is an elegantly coded system.
