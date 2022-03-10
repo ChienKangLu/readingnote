@@ -169,7 +169,7 @@ Spending time keeping your code clean is not just cost effective; it's a matter 
                                       +---------------------+
 ```
 
-## Attitude
+### Attitude
 
 - Why does good code rot so quickly into bad code? We are unprofessional.
 
@@ -179,11 +179,11 @@ Spending time keeping your code clean is not just cost effective; it's a matter 
 
 - It's unprofessional for programmer to bend to the will of managers who don't understand the risks of making messes.
 
-## The Primal Conundrum
+### The Primal Conundrum
 
 - The *only* way to make the deadline - the only way to go fast - is to keep the code as clean as possible all the time.
 
-## The Art of Clean Code?
+### The Art of Clean Code?
 
 - Writing clean code is a lot like painting a picture.
 
@@ -196,3 +196,75 @@ Spending time keeping your code clean is not just cost effective; it's a matter 
 - The "code-sense" will help that programmer choose the best variation and guide him or her to plot a sequence of behavior preserving transformation to get from here to there.
 
 - A programmer who writes clean code is an artist who can take a blank screen through a series of transformations until it is an elegantly coded system.
+
+### What Is Clean Code?
+
+- Elegant and efficient code
+  
+  - ***Straightforward logic***: hard for bugs to hide.
+    
+    - Reading it should make you smile the way a well-crafted music box or well-designed car would.
+  
+  - ***Minimal dependencies***: ease maintenance.
+  
+  - ***Complete error handling***
+    
+    - Error handling should be complete.
+    
+    - Pay attention to details.
+    
+    - Clean code exhibits close attention to detail.
+  
+  - ***Close to optimal performance***: not tempt people to make the code messy with unprincipled optimizations.
+    
+    - Bad code tempts the mess to grow.
+    
+    - A building with broken windows looks like nobody cares about it.
+  
+  - ***Clean code does one thing well***
+    
+    - Bad code tries to do too much, it has muddled intent and ambiguity of purpose. Clean code is *focused*.
+    
+    - Each function, each class, each module exposes a single-minded attitude that remains entirely undistributed, and unpolluted, by the surrounding details.
+
+- Clean code is simple and direct
+  
+  - ***Reads like well-written prose***
+    
+    - Readability perspective
+  
+  - ***Clean code never obscures the designer's intent***
+    
+    - Clean code should clearly expose the tensions in the problem to be solved.
+  
+  - ***Full of crisp abstraction and straightforward lines of control***
+    
+    - One code should be matter-of -fact as opposed to speculative.
+    
+    - Our readers should perceive us to have been decisive.
+
+- ***Clean code can be read, and enhanced by a developer other than its original author***
+  
+  - Clean code makes it easy for other developer to enhance it.
+  
+  - Code that is easy to read
+  
+  - Code that is easy to change
+
+- ***It has unit and acceptance tests***
+  
+  - Test Driven Development
+  
+  - Code, without tests, is not clean.
+
+- ***It has meaningful meaningful names***
+
+- ***It provides one way rather than many ways for doing one thing***
+
+- ***It has minimal dependencies, which are explicitly defined, and provides a clear and minimal API***
+  
+  - Smaller is better.
+
+- ***Code should be literate***
+  
+  - The code should be composed in such a form as to make it readable by humans.
