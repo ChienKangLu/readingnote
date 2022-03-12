@@ -268,3 +268,71 @@ Spending time keeping your code clean is not just cost effective; it's a matter 
 - ***Code should be literate***
   
   - The code should be composed in such a form as to make it readable by humans.
+
+- ***Clean code always looks like it was written by someone who cares*. There is nothing you can do to make it better**
+
+- ***Simple code***
+  
+  - ***Runs all tests***
+  
+  - ***Contains no duplication*** (Reduced duplication)
+    
+    - When the same thing is done over and over, it's a sign that there is an idea in out mind that is not well represented in the code.
+  
+  - ***Expresses all the design ideas that are in the system*** (High expressiveness)
+    
+    - Meaningful names
+    
+    - Whether an object or method is doing more than one thing
+      
+      - Object: it needs to be broken into two or more objects.
+      
+      - Method: use the Extract Method refactoring on it, resulting in one method that says more clearly what it does.
+  
+  - ***Early building of simple abstractions***
+
+- ***You know you are working on clean code when each routine you read turns out to be pretty much what you expected***
+  
+  - When you read clean code you won't be surprised at all.
+  
+  - Programs that are *that* clean are so profoundly well written that you don't even notice it.
+  
+  - Beautiful code make the language look like it was made for the problem! So it's our responsibility to make the language look simple!
+  
+  - It is not the language that makes programs appear simple. It is the programmer that make the language appear simple.
+
+### School of thought
+
+- Don't make the mistake of thinking that we are somehow "right" in any absolute sense. ***There are other schools and other masters that have just as much claim to professionalism as we.***
+
+- The recommendations in this book are things that we have thought long and hard about. We have leaned them through decades of experience and repeated trial and error. ***So whether you agree or disagree, it would be a shame if you did not see and respect, out point of view***.
+
+### We Are Authors
+
+- The next time you write a line of code, remember you are an author, writing for readers who will judge your effort.
+
+- You get the drift. the ratio of time spent reading vs. writing is well over 10:1.
+
+- We are *constantly* reading old code as part of the effort to write new code.
+
+- *Making it easy to read actually makes it easier to write*.
+
+### The Boy Scout Rule
+
+- *Leave the campground cleaner than you found*.
+
+- Isn't continuous improvement an intrinsic part of professionalism? absolutely yes!
+
+### Prequel and Principles
+
+- *Agile Software Development: Principles, Patterns, and Practices (PPP)*
+
+- Single Responsibility Principle (SRP)
+
+- Open Closed Principle (OCP)
+
+- Dependency Inversion Principle (DIP)
+
+### Conclusion
+
+- Books on are don't promise to make you an artist. All it can do is show you the thought processes of good programmers and the tricks, techniques, and tools that they use.
