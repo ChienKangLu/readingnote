@@ -336,3 +336,80 @@ Spending time keeping your code clean is not just cost effective; it's a matter 
 ### Conclusion
 
 - Books on are don't promise to make you an artist. All it can do is show you the thought processes of good programmers and the tricks, techniques, and tools that they use.
+
+## Chapter 2: Meaningful Names
+
+### Use Intention-Revealing Names
+
+- The name of a variable should answer all the big questions:
+  
+  - why it exists
+  
+  - what is does
+  
+  - how it is used
+
+- If a name requires a comment, then the name does not reveal its intent.
+
+#### Example 1
+
+The name `d` reveals nothing:
+
+```java
+int d; // elapsed time in days
+```
+
+We should choose a name that specifics what is being measured and the unit of that measurement:
+
+```java
+int elapsedTimeInDays;
+int daysSinceCreation:
+int daysSinceModification;
+int fileAgeInDays;
+```
+
+#### Example 2
+
+What is the purpose of this code?
+
+```java
+public List<int[]> getThem() {
+    List<int[]> list1 = new ArrayList<int[]>();
+    for (int[] x : theList)
+        if (x[0] == 4)
+            list1.add(x);
+    return list1;
+}
+```
+
+Just by giving these concepts names we can improve the considerably.
+
+```java
+public List<int[]> getFlaggedCells() {
+    List<int[]> flaggedCells = new ArrayList<int[]>();
+    for (int[] cell : gameBoard)
+        if (cell[STATUS_VALUE] == FLAGGED)
+            flaggedCells.add(cell);
+    return flaggedCells;
+}
+```
+
+We can go further and write a simple class for cells instead of using an array of `ints`. It can include an intention-revealing function (call it `isFlagged`) to hide the magic numbers.
+
+```java
+public List<Cell> getFlaggedCells() {
+    List<Cell> flaggedCells = new ArrayList<Cell>();
+    for (Cell cell : gameBoard)
+        if (cell.isFlagged())
+            flaggedCells.add(cell);
+    return flaggedCells;
+}
+```
+
+### Avoid DisInformation
+
+- Avoid words whose entrenched meanings vary from our intended meaning. For example, `hp`, `aix` and `sco` would be poor variable names because they are the names of Unix platforms or variants.
+
+- Do not refer to a grouping of accounts as an `accountList`unless it's actually a `List`. So `accountGroup` or `bunchOfAccounts` or just plain `accounts` would be better. 
+  
+  - Even if the container is a `List`, it's probably better not to encode the container type into the name.
