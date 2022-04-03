@@ -413,3 +413,113 @@ public List<Cell> getFlaggedCells() {
 - Do not refer to a grouping of accounts as an `accountList`unless it's actually a `List`. So `accountGroup` or `bunchOfAccounts` or just plain `accounts` would be better. 
   
   - Even if the container is a `List`, it's probably better not to encode the container type into the name.
+
+- Beware of using names which vary in small ways.
+
+- Spelling similar concepts similarly is *information*. Using inconsistent spelling is *disinformation*.
+  
+  - Lower-case `L` and uppercase `O` look almost entirely like the constants one and zero, respectively.
+
+### Make Meaningful Distinctions
+
+- Number-series naming `(a1, a2, .. aN)` is opposite of intentional naming
+  
+  ```java
+  public static void copyChars(char a1[], char a2[]) {
+      for (int i = 0; i < a1.length; i++) {
+          a2[i] = a1[i];
+      }
+  }
+  ```
+  
+  The function reads much better when `source` and `destination` are used for argument names.
+  
+  ```java
+  public static void copyChars(char source[], char destination[]) {
+      for (int i = 0; i < source.length; i++) {
+          destination[i] = source[i];
+      }
+  }
+  ```
+
+- Noise words are meaningless distinction
+  `Product`, `ProductInfo` and `ProductData` mean nothing different. `Info` and `Data` are indistinct noise words like `a`, `an` and `the`.
+
+- Noise words are redundant
+  
+  - `variable` in variable name is redundant
+  
+  - `table` in table name is redundant
+  
+  - `NameString` is redundant for `Name` when it's never a floating point number
+
+- Distinguish names in such a that the reader knows what the differences offer
+  
+  - `getActiveAccount()`, `getActiveAccounts()` and `getActiveAccountInfo()` are indistinguishable
+  
+  - `moneyAmount` is indistinguishable from `money`
+  
+  - `customerInfo` is indistinguishable from `customer`
+  
+  - `accountData` is indistinguishable from `account`
+  
+  - `theMessage` is indistinguishable from `message`
+
+### Use Pronounceable Names
+
+- If you can not pronounce it, you can't discuss it without sounding like an idiot. This matters because programming is a social activity.
+  
+  ```java
+  class DtaRcrd102 {
+      private Date genymdhms;
+      private Date modymdhms;
+      private final String pszqint = "102";
+  }
+  ```
+  
+  to
+  
+  ```java
+  class Customer{
+      private Date generationTimestamp;
+      private Date modificationTimestamp;
+      private final String recordId = "102";
+  }
+  ```
+
+### Use Searchable Names
+
+- Single-letter names and numeric constants have a particular problem in that they are not easy to locate across a body of text.
+
+- Long names trumps shorter names.
+
+- Searchable name trumps a constant in code.
+
+- Single-letter names can ONLY be used as local variables inside short methods. *The length of a name should correspond to the size of tits scope*.
+
+- If a variable or constant might be seen or used in multiple places in a body of code, it is imperative to give it a search-friendly name.
+  
+  ```
+    for (int j=0; j<34; j++) {
+      s += (t[j]*4)/5;
+  }
+  ```
+  
+  to
+  
+  ```
+  int realDaysPerIdealDay = 4;
+  const int WORK_DAYS_PER_WEEK = 5;
+  int sum = 0;
+  for (int j = 0; j < NUMBER_OF_TASKS; j++) {
+      int realTaskDays = taskEstimate[j] * realDaysPerIdealDay ;
+      int realTaskWeeks = (realTaskDays / WORK_DAYS_PER_WEEK);
+      sum += realTaskWeeks ;
+  }
+  ```
+
+### Avoid Encodings
+
+- Encoding type or scope information into names simply adds an extra burden of deciphering.
+
+- Encoded names are seldom pronounceable and are easy to mis-type.
