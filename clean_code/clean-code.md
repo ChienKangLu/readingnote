@@ -523,3 +523,41 @@ public List<Cell> getFlaggedCells() {
 - Encoding type or scope information into names simply adds an extra burden of deciphering.
 
 - Encoded names are seldom pronounceable and are easy to mis-type.
+
+- No need to prefix member variables with `m_` anymore.
+
+- Prefer to leave interfaces unadorned. So if I must encode either the interface or the implementation, I choose the implementation.
+
+### Avoid Mental Mapping
+
+- Reader shouldn't have to mentally translate your names into other names they already know.
+
+- This problem generally arises from a choice to use neither problem domain terms nor solution domain terms.
+
+- One difference between a smart programmer and a professional programmer is that the professional understands that *clarity is king*. Professionals use their powers for good and write code that others can understand.
+
+### Class Names
+
+- Classes and objects should have noun or noun phrase names.
+
+- A class name should not be a verb.
+
+### Method Names
+
+- Methods should have verb or verb phrase names like `postPayment`, `deletePage` or `save`.
+
+- Accessors, mutators and predicates should be named for their value and prefixed with `get`, `set`and `is` according to javabean standard.
+  
+  ```java
+  string name = employee.getName();
+  customer.setName("mike");
+  if (paycheck.isPosted())...
+  ```
+
+- When constructors are overloaded, use static factory methods with names that describe the arguments.
+  
+  ```java
+  Complex fulcrumPoint = new Complex(23.0);
+  // Making the corresponding constructors private.
+  Complex fulcrumPoint = Complex.FromRealNumber(23.0); // better
+  ```
