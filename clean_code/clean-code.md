@@ -561,3 +561,33 @@ public List<Cell> getFlaggedCells() {
   // Making the corresponding constructors private.
   Complex fulcrumPoint = Complex.FromRealNumber(23.0); // better
   ```
+
+### Don't Be Cute
+
+- Choose clarity over entertainment value.
+
+- Say what you mean. Mean what you say.
+
+### Pick One Word per Concept
+
+- Pick one word for one abstract concept and stick with it.
+
+- The function names have to stand alone, and they have to be consistent in order for you to pick the corrected method without any additional exploration.
+
+- A consistent lexicon is a great boon to the programmers who must use your code.
+
+### Don't Pun
+
+- Avoid using the same word for two purposes.
+
+### Use Solution Domain Names
+
+- Use computer science (CS) terms, algorithm names, patter names math terms, and so forth.
+
+- It is not wise to draw every name from the problem domain.
+
+### Use Problem Domain Names
+
+- When there is no "programmer-eese" for what you're doing, use the name from the problem domain.
+
+- Separating solution and problem domain is part of the job of good programmer and designer.
