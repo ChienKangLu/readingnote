@@ -50,7 +50,7 @@ extension ReminderListViewController {
     func completeReminder(with id: Reminder.ID) {
         var reminder = reminder(for: id)
         reminder.isComplete.toggle()
-        update(reminder, with: id) // TODO: Why should we assign the same ref again??
+        update(reminder, with: id)
         updateSnapshot(reloading: [id])
     }
     

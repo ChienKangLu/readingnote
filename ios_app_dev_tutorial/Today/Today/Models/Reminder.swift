@@ -7,7 +7,8 @@
 
 import Foundation
 
-struct Reminder: Identifiable {
+// You can now compare reminders with the == and != operators. Swift’s default implementation for == checks that all property values are equal.
+struct Reminder: Equatable, Identifiable {
     var id: String = UUID().uuidString
     var title: String
     var dueDate: Date
