@@ -4,14 +4,28 @@
 
 [Windows install | Flutter](https://docs.flutter.dev/get-started/install/windows)
 
-## Check environment
+## Environment
 
 ```shell
 flutter doctor
 ```
 
-## Check connected devices
+## Connected devices
 
 ```shell
 flutter devices
+```
+
+## version
+
+```shell
+flutter --version
+```
+
+## Channel
+
+```shell
+flutter channel
+flutter channel beta
+flutter upgrade
 ```

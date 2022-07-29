@@ -13,5 +13,3 @@ flutter run
 ```
 
 enter `r` to perform hot reload.
-
-
