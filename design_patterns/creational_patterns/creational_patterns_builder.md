@@ -29,5 +29,3 @@ A reader for document exchange format should be able to convert to many text for
 - It isolates code for construction and representation. The Builder pattern improves modularity by encapsulating the way a complex object is constructed and represented.
 
 - It gives you finer control over the construction process. The Builder interface reflects the process of constructing the product more than other creational pattern.
-
-
