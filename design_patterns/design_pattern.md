@@ -5,6 +5,7 @@
 - [Abstract Factory](./creational_patterns/creational_patterns_abstract_facotry.md)
 - [Builder](./creational_patterns/creational_patterns_builder.md)
 - [Factory Method](./creational_patterns/creational_patterns_factory_method.md)
+- [Prototype](./creational_patterns/creational_patterns_prototype.md)
 
 ## Structural patterns
 
