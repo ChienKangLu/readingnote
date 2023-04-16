@@ -41,5 +41,3 @@ Additional consequences:
 1. Two major varieties. (1) Creator is an abstract class without default implementation, and (2) Creator is a concrete class with default implementation
 
 2. Parameterized factory methods. The factory method takes a parameter that identifies the kind of object to create. Overriding a parameterized method lets you easily and selectively extend or change the products that a Creator produces.
-
-
