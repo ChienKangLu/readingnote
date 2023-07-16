@@ -735,3 +735,768 @@ We also learned about the differences between regression and classification prob
 
 - **Regression:** A model that outputs a single value. For example, an estimate of a house’s value.
 - **Classification:** A model that outputs a probability distribution across several categories. For example, in Fashion MNIST, the output was 10 probabilities, one for each of the different types of clothing. Remember, we use Softmax as the activation function in our last Dense layer to create this probability distribution.
+
+# Introduction to CNNs
+
+## Interview with Sebastian
+
+- Build in CNN is called invariance 
+  
+  - location variance is hard coded using Convolutional neural networks
+
+- I have learned never to say never
+
+- Convolutional neural networks were invented in 1989
+  
+  - Data make it different
+
+- Focus on find the right data
+
+## Introduction
+
+- Convolutional neural network, which is commonly abbreviated as CNNs
+
+- CNNs have proven to achieve higher accuracies when classifying images than simple pure dense neural networks
+
+- Convolutional neural network is an the primary reason for breakthroughs in computer vision application using machine learning
+
+- We'll create a CNN-base image classifier from scratch  using TensorFlow and Keras
+
+- Two main concepts in Convolutional neural network are convolutions and maxpooling
+
+## Convolutions
+
+- Assume this greyscale image was 6 pixel in height and 6 pixels in width
+
+- Computer interpret this image as a two-dimensional array of pixels
+
+- Since this image is greyscale, every pixel will have a value between zero to 255 (zero being black and 255 corresponding to white)
+
+![pixel_image_example!](./pixel_image_example.png)
+
+As you know, when we process this image in our neural network, the pixel value will be normalized to a value between zero and one.
+
+The idea of convolutional layer is to create another grid of numbers called the kernel or filter (three by three matrix).
+
+![convolutional_layer_and_filter!](./convolutional_layer_and_filter.png)
+
+Then we can scan this kernel across this image. The image size is six by six and the kernel is three by three. A convolutional layer applies to kernel over the regions of the input image.
+
+Performing a kernel convolution on this pixel value of 25. The first step is to center our kernel over the pixel that we want
+
+![convolutional_layer_and_filter2!](./convolutional_layer_and_filter2.png)
+
+We take each corresponding image and kernel value, multiply them together and then we sum up the whole thing and assign it to the green pixel in convoluted image
+
+![convolutional_layer_and_filter3!](./convolutional_layer_and_filter3.png)
+
+However, what happens to the pixels on the edges? There are a couple of options:
+
+- Not using this pixel in the convolution (you'll lose information about the image because the convoluted image will become much smaller than the original image)
+
+- Common option is do something called zero-padding: add pixels with zero around the original image (without losing information)
+
+![convolutional_layer_and_filter4!](./convolutional_layer_and_filter4.png)
+
+![convolutional_layer_and_filter5!](./convolutional_layer_and_filter5.png)
+
+A kernel convolution is just this process of applying the kernel or filter across different areas of the input image. Convolutions are another type of Keras layer we will use.
+
+## Max Pooling
+
+In short, max pooling is just the process of reducing the size of the input image by summarizing regions.
+
+In order to perform max pooling, we need to select two things:
+
+- a grid, which is the pool size
+
+- a stride, which determines the number of pixels to slide the window across the image
+
+![max_pooling!](./max_pooling.png)
+
+Select the pixel with the greatest value, then slide the grid two pixels at each step and continue this process until we cover the entire convoluted image
+
+![max_pooling2!](./max_pooling2.png)
+
+![max_pooling3!](./max_pooling3.png)
+
+The result will be a new image that's smaller than the original image and you can see we down-sampled the original image. We end with a new image that's half the size of original image. The size of this new image will vary depending on your choice of the grid size and stride.
+
+![max_pooling4!](./max_pooling4.png)
+
+## Recap
+
+We just learned about convolutions and max pooling.
+
+A convolution is the process of applying a filter (“kernel”) to an image. Max pooling is the process of reducing the size of the image through downsampling.
+
+As you will see in the following Colab notebook, convolutional layers can be added to the neural network model using the `Conv2D` layer type in Keras. This layer is similar to the Dense layer, and has weights and biases that need to be tuned to the right values. The `Conv2D` layer also has kernels (filters) whose values need to be tuned as well. So, in a `Conv2D` layer the values inside the filter matrix are the variables that get tuned in order to produce the right output.
+
+Here are some of terms that were introduced in this lesson:
+
+- **CNNs:** Convolutional neural network. That is, a network which has at least one convolutional layer. A typical CNN also includes other types of layers, such as pooling layers and dense layers.
+- **Convolution:** The process of applying a kernel (filter) to an image
+- **Kernel / filter:** A matrix which is smaller than the input, used to transform the input into chunks
+- **Padding:** Adding pixels of some value, usually 0, around the input image
+- **Pooling** The process of reducing the size of an image through downsampling.There are several types of pooling layers. For example, average pooling converts many values into a single value by taking the average. However, maxpooling is the most common.
+- **Maxpooling**: A pooling process in which many values are converted into a single value by taking the maximum value from among them.
+- **Stride:** the number of pixels to slide the kernel (filter) across the image.
+- **Downsampling:** The act of reducing the size of an image
+
+## Colab: Fashion MNIST with CNNs
+
+https://github.com/tensorflow/examples/blob/master/courses/udacity_intro_to_tensorflow_for_deep_learning/l04c01_image_classification_with_cnns.ipynb
+
+(Same as previous **Colab: Fashion MNIST**)
+
+### Build the model
+
+```pyhton
+model = tf.keras.Sequential([
+    tf.keras.layers.Conv2D(32, (3,3), padding='same', activation=tf.nn.relu,
+                           input_shape=(28, 28, 1)),
+    tf.keras.layers.MaxPooling2D((2, 2), strides=2),
+    tf.keras.layers.Conv2D(64, (3,3), padding='same', activation=tf.nn.relu),
+    tf.keras.layers.MaxPooling2D((2, 2), strides=2),
+    tf.keras.layers.Flatten(),
+    tf.keras.layers.Dense(128, activation=tf.nn.relu),
+    tf.keras.layers.Dense(10, activation=tf.nn.softmax)
+])
+```
+
+This network layers are:
+
+- **"convolutions"** `tf.keras.layers.Conv2D and MaxPooling2D`— Network start with two pairs of Conv/MaxPool. The first layer is a Conv2D filters (3,3) being applied to the input image, retaining the original image size by using padding, and creating 32 output (convoluted) images (so this layer creates 32 convoluted images of the same size as input). After that, the 32 outputs are reduced in size using a MaxPooling2D (2,2) with a stride of 2. The next Conv2D also has a (3,3) kernel, takes the 32 images as input and creates 64 outputs which are again reduced in size by a MaxPooling2D layer. So far in the course, we have described what a Convolution does, but we haven't yet covered how you chain multiples of these together. We will get back to this in lesson 4 when we use color images. At this point, it's enough if you understand the kind of operation a convolutional filter performs
+
+- **output** `tf.keras.layers.Dense` — A 128-neuron, followed by 10-node *softmax* layer. Each node represents a class of clothing. As in the previous layer, the final layer takes input from the 128 nodes in the layer before it, and outputs a value in the range `[0, 1]`, representing the probability that the image belongs to that class. The sum of all 10 node values is 1.
+
+> Note: Using `softmax` activation and `SparseCategoricalCrossentropy()` has issues and which are patched by the `tf.keras` model. A safer approach, in general, is to use a linear output (no activation function) with `SparseCategoricalCrossentropy(from_logits=True)`.
+
+### Compile the model
+
+```python
+model.compile(optimizer='adam',
+              loss=tf.keras.losses.SparseCategoricalCrossentropy(),
+              metrics=['accuracy'])
+```
+
+Train the model
+
+```python
+BATCH_SIZE = 32
+train_dataset = train_dataset.cache().repeat().shuffle(num_train_examples).batch(BATCH_SIZE)
+test_dataset = test_dataset.cache().batch(BATCH_SIZE)
+
+model.fit(train_dataset, epochs=10, steps_per_epoch=math.ceil(num_train_examples/BATCH_SIZE))
+```
+
+## Summary
+
+### A Comprehensive Guide to Convolutional Neural Networks — the ELI5 way
+
+https://towardsdatascience.com/a-comprehensive-guide-to-convolutional-neural-networks-the-eli5-way-3bd2b1164a53
+
+#### Why ConvNets over Feed-Forward Neural Nets?
+
+- A ConvNet is able to **successfully capture the Spatial and Temporal dependencies** in an image through the application of relevant filters.
+
+#### Input Image
+
+![rgb_image!](./rgb_image.png)
+
+- You can imagine how computationally intensive things would get once the images reach dimensions, say 8K (7680×4320). The role of ConvNet is to reduce the images into a form that is easier to process, without losing features that are critical for getting a good prediction.
+
+- This is important when we are to design an architecture that is not only good at learning features but also scalable to massive datasets.
+
+#### Convolutional layer - The kernel
+
+- The objective of the Convolution Operation is to **extract the high-level features** such as edges, from the input image. ConvNets need not be limited to only one Convolutional Layer. Conventionally, the first ConvLayer is responsible for capturing the Low-Level features such as edges, color, gradient orientation, etc. With added layers, the architecture adapts to the High-Level features as well, giving us a network that has a wholesome understanding of images in the dataset, similar to how we would.
+- There are two types of results to the operation — one in which the convolved feature is reduced in dimensionality as compared to the input, and the other in which the dimensionality is either increased or remains the same.
+  - When we augment the 5x5x1 image into a 6x6x1 image and then apply the 3x3x1 kernel over it, we find that the convolved matrix turns out to be of dimensions 5x5x1. Hence the name — **Same Padding**.
+  - On the other hand, if we perform the same operation without padding, we are presented with a matrix that has dimensions of the Kernel (3x3x1) itself — **Valid Padding**.
+- [GitHub - vdumoulin/conv_arithmetic: A technical report on convolution arithmetic in the context of deep learning](https://github.com/vdumoulin/conv_arithmetic)
+
+#### Pooling layer
+
+- Similar to the Convolutional Layer, the Pooling layer is responsible for reducing the spatial size of the Convolved Feature. This is to **decrease the computational power required to process the data** through dimensionality reduction. Furthermore, it is useful for **extracting dominant features** which are rotational and positional invariant, thus maintaining the process of effectively training the model.
+
+- There are two types of Pooling: Max Pooling and Average Pooling. **Max Pooling** returns the **maximum value** from the portion of the image covered by the Kernel. On the other hand, **Average Pooling** returns the **average of all the values** from the portion of the image covered by the Kernel.
+
+- The Convolutional Layer and the Pooling Layer, together form the i-th layer of a Convolutional Neural Network. Depending on the complexities in the images, the number of such layers may be increased for capturing low-level details even further, but at the cost of more computational power.
+
+- After going through the above process, we have successfully enabled the model to understand the features.
+
+#### Classification — Fully Connected Layer (FC Layer)
+
+![cnn_network!](./cnn_network.png)
+
+- Adding a Fully-Connected layer is a (usually) cheap way of learning non-linear combinations of the high-level features as represented by the output of the convolutional layer. The Fully-Connected layer is learning a possibly non-linear function in that space.
+
+- Flatten the image into a column vector
+
+- Over a series of epochs, the model is able to distinguish between dominating and certain low-level features in images and classify them using the **Softmax Classification** technique.
+
+# Going Further With CNNs
+
+## Interview with Sebastian
+
+Overfitting is a result of something called the bias-variance trade-off, a network that has very few weights, can't learn that  much stuff, that's commonly called bias in machine learning. A network that has very many parameters can randomly pick a solution that you don't like because there's too many parameters and the variance of the solution might pick based on the data called variance. But the simple rule is, the more parameters you have relative to data, the more likely you are able to pick just a complete event solution as opposite to the good solution. There is two solutions:
+
+- Holdout sets: you can divide the data. 90% for training and 10% for testing and do what's called cross validation where you check the performance on the testing set that you're training on it and when that error goes up, you stop training
+
+- Constraint your network:put biases around your weights and I want to put them all as close to zero as possible and the more you constrained these weight or you feel you have, the lesser the overfit
+
+- Training, test and validation dataset: if you touch your test dataset at many, many times, then eventually you'll start overfitting your test set, and that is really bad
+
+Getting data in shape is really hard! 90% percent of your work is cleaning up data:)
+
+## Introduction
+
+In real application, we usually have to deal with high resolution color images of different sizes. One of the great advantage of CNNs is that they can also work with color images.
+
+## Dogs and Cats Dataset
+
+We're going to use cat and dog images from Microsoft image dataset. Each image in this dataset is labeled with either a one (dog) or a zero (cat). Even though Microsoft image dataset contains over three million labeled images of cats and dogs, only 25000 of them are public available. Training our CNN on this 25000 image will take a very long time. Therefore, in order to decrease the training time, we'll only use a small subset of images to training our CNNs. Our subset contains 2000 training images and 1000 validation images. Out of the 2000 training images, 1000 of them are dog images and 1000 of them are cat images. Two main challenges:
+
+- Working with images of different sizes
+
+- Working with color images
+
+## Images of Different Sizes
+
+Our first challenge will be dealing with images of different sizes. This is because of a neural network needs a fixed size input. Just flatten the images of different sizes won't work. When doing image classification, we always solve this problem by resizing all the images to the same size.
+
+![resizing_image!](./resizing_image.png)
+
+In this lesson, we'll choose to resize all images in dogs and cats dataset to be 150 pixels in height and 150 pixels in width. By resizing all images to the same size, this will guarantee  that when we flatten the images, they will result in 1D arrays of the same size
+
+![resizing_image2!](./resizing_image2.png)
+
+## Color Images Part 1
+
+Computer interpret grey scale images as two-dimensional arrays. This two-dimensional arrays contain the corresponding pixel values of the grey scale images. The width and height of the two-dimensional array will be determined by size of the image
+
+![pixel_image_example!](./pixel_image_example.png)
+
+In a similar manner, computer interprets color images as three-dimensional arrays. The width and height of the three-dimensional array will be determined by the width and height of the image and the depth will be determined by the number of color channels.
+
+![color_image!](./color_image.png)
+
+Most of color images can be represented by three color channels. Namely, red, green and blue (RGB images). Altogether, these three channels combine to create a single image.
+
+![color_image2!](./color_image2.png)
+
+In RGB images, each color channel is represented by its own two-dimensional array. Since we have three channels, we end up with three two-dimensional arrays.
+
+![color_image3!](./color_image3.png)
+
+Therefore, in the case of RGB images, the depth of the three-dimensional array is just the stack of these two-dimensional arrays corresponding to the red, green and blue color channels.
+
+![color_image4!](./color_image4.png)
+
+Five pixels in height, five pixels in width and a depth of three.
+
+## Color Images Part 2
+
+![color_image_code!](./color_image_code.png)
+
+## Convolutions with Color Images
+
+We'll start by choosing a filter of particular size. The only different now is that the filter itself will be three-dimensional. The depth of the filter will be chosen to match the number of color channels and our color image. This is because we're going to convolve each color channel with its own two-dimensional filter. Therefore, if we're working with RGB  images, our 3D filter will have a depth of three.
+
+![three_dimensional_filter!](./three_dimensional_filter.png)
+
+![three_dimensional_filter2!](./three_dimensional_filter2.png)
+
+For simplicity, let's assume that our RGB image is five by five pixels. We'll add zero padding to each of these arrays in order to avoid loosing information when performing the convolution.
+
+![three_dimensional_padding!](./three_dimensional_padding.png)
+
+The convolution will be carried out in exactly the same way as for greyscales images. The only difference is that now we have to perform three convolutions instead of one.
+
+![thee_dimensional_convolution!](./thee_dimensional_convolution.png)
+
+The resulting convolutional output is a two-dimensional array with the same width and height of the RGB image.
+
+![thee_dimensional_convolution2!](./thee_dimensional_convolution2.png)
+
+As we can see, a convolution with a single 3D filter produces a single convoluted output.
+
+![thee_dimensional_convolution3!](./thee_dimensional_convolution3.png)
+
+However, when working with CNNs, it's customary to use more than one 3D filter. If we use more than one filter, then we'll get one convoluted output per filter. For example, if we use three filters, then we'll get three convoluted outputs. Therefore, we can think of the convoluted output as being three-dimensional where the depth will correspond to the number of filters. Similarly, if you have 16 filters, the depth of the convolutional output will be 16
+
+![thee_dimensional_convolution4!](./thee_dimensional_convolution4.png)
+
+![thee_dimensional_convolution5!](./thee_dimensional_convolution5.png)
+
+![thee_dimensional_convolution5!](./thee_dimensional_convolution6.png)
+
+In code, we can control how many outputs a con2D layer creates by specifying the number of filters. We can also specify the size of the 3D filters by using the kernel size argument
+
+![con_2d_code!](./con_2d_code.png)
+
+Remember that when we train the CNN, the values in the three-dimensional kernels will be updated so as to minimize the loss function.
+
+## Max Pooling with Color Images
+
+Perform max-pooling in three-dimensional convoluted output. In essence, max-pooling works the same way as it did for grey-scale images. The only difference is that now ew have to perform max-pooling on each convoluted output.
+
+![max_pooling_3_d!](./max_pooling_3_d.png)
+
+![max_pooling_3_d2!](./max_pooling_3_d2.png)
+
+We end up with 3 two-dimensional arrays where each two-dimensional array is half the size of its corresponding convoluted output.
+
+![max_pooling_3_d3!](./max_pooling_3_d3.png)
+
+We get a 3D array that is half the width and height of convoluted output, but has the same depth.
+
+## Colab: Cats and Dogs
+
+https://github.com/tensorflow/examples/blob/master/courses/udacity_intro_to_tensorflow_for_deep_learning/l05c01_dogs_vs_cats_without_augmentation.ipynb
+
+In this tutorial, we will discuss how to classify images into pictures of cats or pictures of dogs. We'll build an image classifier using `tf.keras.Sequential` model and load data using `tf.keras.preprocessing.image.ImageDataGenerator`.
+
+### importing packages
+
+- os — to read files and directory structure
+- numpy — for some matrix math outside of TensorFlow
+- matplotlib.pyplot — to plot the graph and display images in our training and validation data
+
+```python
+import tensorflow as tf
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+
+import os
+import matplotlib.pyplot as plt
+import numpy as np
+
+import logging
+logger = tf.get_logger()
+logger.setLevel(logging.ERROR)
+```
+
+### Data Loading
+
+The dataset we are using is a filtered version of [Dogs vs. Cats](https://www.kaggle.com/c/dogs-vs-cats/data) dataset from Kaggle (ultimately, this dataset is provided by Microsoft Research). In this Colab however, we will make use of the class `tf.keras.preprocessing.image.ImageDataGenerator` which will read data from disk. We therefore need to directly download *Dogs vs. Cats* from a URL and unzip it to the Colab filesystem.
+
+```python
+_URL = 'https://storage.googleapis.com/mledu-datasets/cats_and_dogs_filtered.zip'
+zip_dir = tf.keras.utils.get_file('cats_and_dogs_filterted.zip', origin=_URL, extract=True)
+```
+
+The dataset we have downloaded has the following directory structure.
+
+```
+cats_and_dogs_filtered
+|__ train
+    |______ cats: [cat.0.jpg, cat.1.jpg, cat.2.jpg ...]
+    |______ dogs: [dog.0.jpg, dog.1.jpg, dog.2.jpg ...]
+|__ validation
+    |______ cats: [cat.2000.jpg, cat.2001.jpg, cat.2002.jpg ...]
+    |______ dogs: [dog.2000.jpg, dog.2001.jpg, dog.2002.jpg ...]
+```
+
+```python
+base_dir = os.path.join(os.path.dirname(zip_dir), 'cats_and_dogs_filtered')
+train_dir = os.path.join(base_dir, 'train')
+validation_dir = os.path.join(base_dir, 'validation')
+
+train_cats_dir = os.path.join(train_dir, 'cats')  # directory with our training cat pictures
+train_dogs_dir = os.path.join(train_dir, 'dogs')  # directory with our training dog pictures
+validation_cats_dir = os.path.join(validation_dir, 'cats')  # directory with our validation cat pictures
+validation_dogs_dir = os.path.join(validation_dir, 'dogs')  # directory with our validation dog pictures
+```
+
+### Understanding our data
+
+Let's look at how many cats and dogs images we have in our training and validation directory
+
+```python
+num_cats_tr = len(os.listdir(train_cats_dir))
+num_dogs_tr = len(os.listdir(train_dogs_dir))
+
+num_cats_val = len(os.listdir(validation_cats_dir))
+num_dogs_val = len(os.listdir(validation_dogs_dir))
+
+total_train = num_cats_tr + num_dogs_tr
+total_val = num_cats_val + num_dogs_val
+
+print('total training cat images:', num_cats_tr)
+print('total training dog images:', num_dogs_tr)
+
+print('total validation cat images:', num_cats_val)
+print('total validation dog images:', num_dogs_val)
+print("--")
+print("Total training images:", total_train)
+print("Total validation images:", total_val)
+```
+
+### Setting Model Parameters
+
+```python
+BATCH_SIZE = 100  # Number of training examples to process before updating our models variables
+IMG_SHAPE  = 150  # Our training data consists of images with width of 150 pixels and height of 150 pixels
+```
+
+### Data Preparation
+
+Images must be formatted into appropriately pre-processed floating point tensors before being fed into the network. The steps involved in preparing these images are:
+
+1. Read images from the disk
+2. Decode contents of these images and convert it into proper grid format as per their RGB content
+3. Convert them into floating point tensors
+4. Rescale the tensors from values between 0 and 255 to values between 0 and 1, as neural networks prefer to deal with small input values.
+
+Fortunately, all these tasks can be done using the class **tf.keras.preprocessing.image.ImageDataGenerator**.
+
+We can set this up in a couple of lines of code.
+
+```python
+train_image_generator      = ImageDataGenerator(rescale=1./255)  # Generator for our training data
+validation_image_generator = ImageDataGenerator(rescale=1./255)  # Generator for our validation data
+```
+
+After defining our generators for training and validation images, **flow_from_directory** method will load images from the disk, apply rescaling, and resize them using single line of code.
+
+```python
+train_data_gen = train_image_generator.flow_from_directory(batch_size=BATCH_SIZE,
+                                                           directory=train_dir,
+                                                           shuffle=True,
+                                                           target_size=(IMG_SHAPE,IMG_SHAPE), #(150,150)
+                                                           class_mode='binary')
+```
+
+```python
+val_data_gen = validation_image_generator.flow_from_directory(batch_size=BATCH_SIZE,
+                                                              directory=validation_dir,
+                                                              shuffle=False,
+                                                              target_size=(IMG_SHAPE,IMG_SHAPE), #(150,150)
+                                                              class_mode='binary')
+```
+
+#### Visualizing Training images
+
+We can visualize our training images by getting a batch of images from the training generator, and then plotting a few of them using `matplotlib`.
+
+```python
+sample_training_images, _ = next(train_data_gen) 
+```
+
+The `next` function returns a batch from the dataset. One batch is a tuple of (*many images*, *many labels*). For right now, we're discarding the labels because we just want to look at the images.
+
+```python
+# This function will plot images in the form of a grid with 1 row and 5 columns where images are placed in each column.
+def plotImages(images_arr):
+    fig, axes = plt.subplots(1, 5, figsize=(20,20))
+    axes = axes.flatten()
+    for img, ax in zip(images_arr, axes):
+        ax.imshow(img)
+    plt.tight_layout()
+    plt.show()
+```
+
+```python
+plotImages(sample_training_images[:5])  # Plot images 0-4
+```
+
+### Model Creation
+
+The model consists of four convolution blocks with a max pool layer in each of them. Then we have a fully connected layer with 512 units, with a `relu` activation function. The model will output class probabilities for two classes — dogs and cats — using `softmax`.
+
+```python
+model = tf.keras.models.Sequential([
+    tf.keras.layers.Conv2D(32, (3,3), activation='relu', input_shape=(150, 150, 3)),
+    tf.keras.layers.MaxPooling2D(2, 2),
+
+    tf.keras.layers.Conv2D(64, (3,3), activation='relu'),
+    tf.keras.layers.MaxPooling2D(2,2),
+
+    tf.keras.layers.Conv2D(128, (3,3), activation='relu'),
+    tf.keras.layers.MaxPooling2D(2,2),
+
+    tf.keras.layers.Conv2D(128, (3,3), activation='relu'),
+    tf.keras.layers.MaxPooling2D(2,2),
+
+    tf.keras.layers.Flatten(),
+    tf.keras.layers.Dense(512, activation='relu'),
+    tf.keras.layers.Dense(2)
+])
+```
+
+### Compile the model
+
+As usual, we will use the `adam` optimizer. Since we output a softmax categorization, we'll use `sparse_categorical_crossentropy` as the loss function. We would also like to look at training and validation accuracy on each epoch as we train our network, so we are passing in the metrics argument.
+
+```python
+model.compile(optimizer='adam',
+              loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+              metrics=['accuracy'])
+```
+
+### Model Summary
+
+Let's look at all the layers of our network using **summary** method.
+
+```python
+model.summary()
+```
+
+### Train the model
+
+Since our batches are coming from a generator (`ImageDataGenerator`), we'll use `fit_generator` instead of `fit`.
+
+```python
+EPOCHS = 100
+history = model.fit_generator(
+    train_data_gen,
+    steps_per_epoch=int(np.ceil(total_train / float(BATCH_SIZE))),
+    epochs=EPOCHS,
+    validation_data=val_data_gen,
+    validation_steps=int(np.ceil(total_val / float(BATCH_SIZE)))
+)
+```
+
+![overfitting!](./overfitting.png)
+
+### Visualizing results of the training
+
+```python
+acc = history.history['accuracy']
+val_acc = history.history['val_accuracy']
+
+loss = history.history['loss']
+val_loss = history.history['val_loss']
+
+epochs_range = range(EPOCHS)
+
+plt.figure(figsize=(8, 8))
+plt.subplot(1, 2, 1)
+plt.plot(epochs_range, acc, label='Training Accuracy')
+plt.plot(epochs_range, val_acc, label='Validation Accuracy')
+plt.legend(loc='lower right')
+plt.title('Training and Validation Accuracy')
+
+plt.subplot(1, 2, 2)
+plt.plot(epochs_range, loss, label='Training Loss')
+plt.plot(epochs_range, val_loss, label='Validation Loss')
+plt.legend(loc='upper right')
+plt.title('Training and Validation Loss')
+plt.savefig('./foo.png')
+plt.show()
+```
+
+![overfitting2!](./overfitting2.png)
+
+As we can see from the plots, training accuracy and validation accuracy are off by large margin and our model has achieved only around **70%** accuracy on the validation set (depending on the number of epochs you trained for).
+
+This is a clear indication of overfitting. Once the training and validation curves start to diverge, our model has started to memorize the training data and is unable to perform well on the validation data.
+
+## Softmax and Sigmoid
+
+Notice that our last layer (our classifier) consists of a `Dense` layer with `2` output units and a `softmax` activation function, as seen below:
+
+```python
+tf.keras.layers.Dense(2, activation='softmax')
+```
+
+Another popular approach when working with binary classification problems, is to use a classifier that consists of a `Dense` layer with `1` output unit and a `sigmoid` activation function, as seen below:
+
+```python
+tf.keras.layers.Dense(1, activation='sigmoid')
+```
+
+Either of these two options will work well in a binary classification problem. However, you should keep in mind, that if you decide to use a `sigmoid` activation function in your classifier, you will also have to change the `loss` parameter in the `model.compile()` method, from `'sparse_categorical_crossentropy'` to `'binary_crossentropy'`, as shown below:
+
+```python
+model.compile(optimizer='adam', 
+              loss='binary_crossentropy',
+              metrics=['accuracy'])
+```
+
+## Validation
+
+When we use CNN-based model to classify the images from fashion MNST dataset, we got 97% accuracy on the training set but only 92% accuracy on the test set. This was our CNN was overfitting. In other word, it was memorizing the training set. But we only became aware of this big difference after we finished training our CNN because it was only after we finished training our CNN that we were able to compare the accuracy on the test set with accuracy achieved at the end of training.
+
+To avoid this issue, we often introduce a validation set. During training, the neural network will only look at the training set in order to decide how to modify its weights and biases. Then after every training epoch, **we check how the model is doing by looking at the training loss the the loss in validation set**. <u>It's important to note that the model does not use any part of the validation set to tune the weights and biases</u>. <u>The validation step only tell us if the model is doing well on the validation set</u>. In this way, it gives us an idea of how well the model generalizes to a new set of data that is separate from the training set. The idea is that since the neural network doesn't use the validation set for deciding its weights and biases, then it can tell us if we're overfitting the training set
+
+![validation_set!](./validation_set.png)
+
+Very high accuracy on training set and a much lower on the validation set. This is a clear sign of overfitting. The network has memorized the training set so it performs really well on it. But when tested on the validation dataset which it has not been trained on, it performs poorly.
+
+One way to avoid overfitting is by taking a look at the plot of training and validation loss as a function of epochs. We can see after some epochs, the validation loss starts to increase, while the training loss keeps decreasing. We also see that when we finish training, the validation loss is very high, and the training loss is very small. This is actually an indication that neural network is overfitting the training data because it's not generalizing well enough to also perform well on the validation set. In other word, this plot is telling us that after just a few epochs, our neural network is just memorizing the training data and it is not generalizing well to the data in the validation set. As we can see, the validation set can help us determine the number of epochs we should train our CNN for, such that out network is accurate but it's not overfitting.
+
+![loss_plot!](./loss_plot.png)
+
+This kind of process can also prove useful if we have multiple potential architectures to choose from. For example, if you're deciding on the number of layers to put in your neural network, you can create various models with different architectures and then compare them using validation set. The architecture that gives you the lowest validation loss will be the best model
+
+![multiple_models_chosen_by_validation_loss!](./multiple_models_chosen_by_validation_loss.png)
+
+You might also be wondering why we must create a validation set after all if we have the test set. Couldn't we just use the test set for validation? The problem is that even though we don't use the validation set to tune the weights and biases during training, we ultimately end up tuning our models such that it performs well on both the validation set and training set. Therefore, our neural network will end up being biased in favor of validation set. We need a separate test set to really see how our model generalizes and performs when given new data it has never seen before.
+
+![training_validation_test_sets!](./training_validation_test_sets.png)
+
+We just saw how we can use validation set to prevent overfitting
+
+## Image Augmentation
+
+When training CNN to recognize particular objects in images, you want your CNN to be able to detect these objects regardless of their size or position in the image.
+
+![image_augmentation!](./image_augmentation.png)
+
+Image augmentation works by creating new training images by applying a number of random image transformations to the images in the original training set.
+
+![image_augmentation2!](./image_augmentation2.png)
+
+By applying this new transformed images to our training set, we are ensuring that our CNN sees a lot of different examples during training. Consequently, our CNN will generalize better to unseen data and avoid overfitting.
+
+## Dropout
+
+Another technique that can also help us avoid overfitting. We learned that during training and neural network adjusts its weight and biases to minimize the loss function. One problem that can sometimes occur during training is that one part of the network ends up with very large weights while other parts end up with very small weights. This results in the parts having the larger weights playing a major role in training process while the other parts with smaller weights won't play much of role and they don't get trained very much.
+
+![dropout!](./dropout.png)
+
+One way to avoid this happening is to perform dropout. Dropout consists of randomly turning off some of the neurons in network durning training. By turning off some neurons durning training, this forces other neurons to pick up the slack and to take a more active part in the training. So as we go through the epochs durning training, we'll randomly turn off some neurons.
+
+![dropout2!](./dropout2.png)
+
+For example, let's suppose in the first epoch we choose not to use these two neurons. So we do our feedforward and our backpropagation passes without using these neurons. In the second epoch, we choose not to use these three neurons. Again, we do feed forward and back-propagation passes without using those neurons, and then in the third epoch, which is not to use these two neurons. we do feed forward and back-propagation passes without using those neurons and so on. 
+
+![dropout3!](./dropout3.png)
+
+By training our network in this way, we can avoid overfitting. You can say that the network becomes more resistant, because it can not rely on all of the neurons being there to solve the problem. Consequently, other neurons will have to set up and also be able to do the job. In practice, we specify the probability that each neuron gets dropped out at each training epoch. Notice, that since we specify a probability. Some neurons may get turned off more than others and some may never get turned off at all. However, it is not a problem, because we're doing it many many times over. Therefore on average, each neuron will get the same chance of being turned off.
+
+## Colab: Cats and Dogs Revisited
+
+https://github.com/tensorflow/examples/blob/master/courses/udacity_intro_to_tensorflow_for_deep_learning/l05c02_dogs_vs_cats_with_augmentation.ipynb
+
+- *Data Augmentation* and *Dropout* - Key techniques to fight overfitting in computer vision tasks that we will incorporate into our data pipeline and image classifier model.
+
+### Data augmentation
+
+#### Flipping the image horizontally
+
+```python
+image_gen = ImageDataGenerator(rescale=1./255, horizontal_flip=True)
+
+train_data_gen = image_gen.flow_from_directory(batch_size=BATCH_SIZE,
+                                               directory=train_dir,
+                                               shuffle=True,
+                                               target_size=(IMG_SHAPE,IMG_SHAPE))
+```
+
+#### Rotating the image
+
+```python
+image_gen = ImageDataGenerator(rescale=1./255, rotation_range=45)
+
+train_data_gen = image_gen.flow_from_directory(batch_size=BATCH_SIZE,
+                                               directory=train_dir,
+                                               shuffle=True,
+                                               target_size=(IMG_SHAPE, IMG_SHAPE))
+```
+
+#### Applying Zoom
+
+```python
+image_gen = ImageDataGenerator(rescale=1./255, zoom_range=0.5)
+
+train_data_gen = image_gen.flow_from_directory(batch_size=BATCH_SIZE,
+                                               directory=train_dir,
+                                               shuffle=True,
+                                               target_size=(IMG_SHAPE, IMG_SHAPE))
+```
+
+#### Putting it all together
+
+```python
+image_gen_train = ImageDataGenerator(
+      rescale=1./255,
+      rotation_range=40,
+      width_shift_range=0.2,
+      height_shift_range=0.2,
+      shear_range=0.2,
+      zoom_range=0.2,
+      horizontal_flip=True,
+      fill_mode='nearest')
+
+train_data_gen = image_gen_train.flow_from_directory(batch_size=BATCH_SIZE,
+                                                     directory=train_dir,
+                                                     shuffle=True,
+                                                     target_size=(IMG_SHAPE,IMG_SHAPE),
+                                                     class_mode='binary')
+```
+
+Generally, we only apply data augmentation to our training examples, since the original images should be representative of what our model needs to manage. So, in this case we are only rescaling our validation images and converting them into batches using ImageDataGenerator.
+
+### Model Creation
+
+The model consists of four convolution blocks with a max pool layer in each of them.
+
+Before the final Dense layers, we're also applying a Dropout probability of 0.5. It means that 50% of the values coming into the Dropout layer will be set to zero. This helps to prevent overfitting.
+
+Then we have a fully connected layer with 512 units, with a `relu` activation function. The model will output class probabilities for two classes — dogs and cats — using `softmax`.
+
+```python
+model = tf.keras.models.Sequential([
+    tf.keras.layers.Conv2D(32, (3,3), activation='relu', input_shape=(150, 150, 3)),
+    tf.keras.layers.MaxPooling2D(2, 2),
+
+    tf.keras.layers.Conv2D(64, (3,3), activation='relu'),
+    tf.keras.layers.MaxPooling2D(2,2),
+
+    tf.keras.layers.Conv2D(128, (3,3), activation='relu'),
+    tf.keras.layers.MaxPooling2D(2,2),
+
+    tf.keras.layers.Conv2D(128, (3,3), activation='relu'),
+    tf.keras.layers.MaxPooling2D(2,2),
+
+    tf.keras.layers.Dropout(0.5),
+    tf.keras.layers.Flatten(),
+    tf.keras.layers.Dense(512, activation='relu'),
+    tf.keras.layers.Dense(2)
+])
+```
+
+## Other Techniques to Prevent Overfitting
+
+In this lesson we saw three different techniques to prevent overfitting:
+
+- **Early Stopping**: In this method, we track the loss on the validation set during the training phase and use it to determine when to stop training such that the model is accurate but not overfitting.
+
+- **Image Augmentation**: Artificially boosting the number of images in our training set by applying random image transformations to the existing images in the training set.
+
+- **Dropout**: Removing a random selection of a fixed number of neurons in a neural network during training.
+
+However, these are not the only techniques available to prevent overfitting. You can read more about these and other techniques in the link below:
+
+[Memorizing is not learning! — 6 tricks to prevent overfitting in machine learning](https://hackernoon.com/memorizing-is-not-learning-6-tricks-to-prevent-overfitting-in-machine-learning-820b091dc42)
+
+## Summary
+
+In this lesson we learned how Convolutional Neural Networks work with color images and saw various techniques that we can use to avoid overfitting . The main key points of this lesson are:
+
+CNNs with RGB Images of Different Sizes:
+
+- **Resizing**: When working with images of different sizes, you must resize all the images to the same size so that they can be fed into a CNN.
+
+- **Color Images**: Computers interpret color images as 3D arrays.
+
+- **RGB Image**: Color image composed of 3 color channels: Red, Green, and Blue.
+
+- **Convolutions**: When working with RGB images we convolve each color channel with its own convolutional filter. Convolutions on each color channel are performed in the same way as with grayscale images, *i.e.* by performing element-wise multiplication of the convolutional filter (kernel) and a section of the input array. The result of each convolution is added up together with a bias value to get the convoluted output.
+
+- **Max Pooling**: When working with RGB images we perform max pooling on each color channel using the same window size and stride. Max pooling on each color channel is performed in the same way as with grayscale images, *i.e.* by selecting the max value in each window.
+
+- **Validation Set**: We use a validation set to check how the model is doing during the training phase. Validation sets can be used to perform Early Stopping to prevent overfitting and can also be used to help us compare different models and choose the best one.
+
+Methods to Prevent Overfitting:
+
+- **Early Stopping**: In this method, we track the loss on the validation set during the training phase and use it to determine when to stop training such that the model is accurate but not overfitting.
+
+- **Image Augmentation**: Artificially boosting the number of images in our training set by applying random image transformations to the existing images in the training set.
+
+- **Dropout**: Removing a random selection of a fixed number of neurons in a neural network during training.
+
+You also created and trained a Convolutional Neural Network to classify images of Dogs and Cats with and without Image Augmentation and Dropout. You were able to see that Image Augmentation and Dropout greatly reduces overfitting and improves accuracy. As an exercise, you were able to apply everything you learned in this lesson to create your own CNN to classify images of flowers.
