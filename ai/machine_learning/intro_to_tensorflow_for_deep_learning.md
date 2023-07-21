@@ -1032,7 +1032,7 @@ However, when working with CNNs, it's customary to use more than one 3D filter. 
 
 ![thee_dimensional_convolution5!](./thee_dimensional_convolution6.png)
 
-In code, we can control how many outputs a con2D layer creates by specifying the number of filters. We can also specify the size of the 3D filters by using the kernel size argument
+In code, we can control how many outputs a con2D layer creates by specifying the number of filters. We can also specify the size dof the 3D filters by using the kernel size argument
 
 ![con_2d_code!](./con_2d_code.png)
 
@@ -1221,7 +1221,7 @@ model = tf.keras.models.Sequential([
 
     tf.keras.layers.Flatten(),
     tf.keras.layers.Dense(512, activation='relu'),
-    tf.keras.layers.Dense(2)
+    tf.keras.layers.Dense(2, activation='softmax')
 ])
 ```
 
@@ -1357,7 +1357,7 @@ Another technique that can also help us avoid overfitting. We learned that durin
 
 ![dropout!](./dropout.png)
 
-One way to avoid this happening is to perform dropout. Dropout consists of randomly turning off some of the neurons in network durning training. By turning off some neurons durning training, this forces other neurons to pick up the slack and to take a more active part in the training. So as we go through the epochs durning training, we'll randomly turn off some neurons.
+One way to avoid this happening is to perform dropout. Dropout consists of randomly turning off some of the neurons in network during training. By turning off some neurons during training, this forces other neurons to pick up the slack and to take a more active part in the training. So as we go through the epochs durning training, we'll randomly turn off some neurons.
 
 ![dropout2!](./dropout2.png)
 
@@ -1500,3 +1500,179 @@ Methods to Prevent Overfitting:
 - **Dropout**: Removing a random selection of a fixed number of neurons in a neural network during training.
 
 You also created and trained a Convolutional Neural Network to classify images of Dogs and Cats with and without Image Augmentation and Dropout. You were able to see that Image Augmentation and Dropout greatly reduces overfitting and improves accuracy. As an exercise, you were able to apply everything you learned in this lesson to create your own CNN to classify images of flowers.
+
+# Transfer Learning
+
+(Previously, with dropout and image augmentation, the validation accuracy is around 80%, 20% is still too high for an error rate. How do we increate validation accuracy above 95%)
+
+## Interview with Sebastian
+
+- Transfer learning is taking a model and applying it with a couple of additional tweaking to a new scenario. So being able to have a bit of boost instead of training a model completely from scratch
+
+- TensorFlow is being released with pre-trained models
+
+## Introduction
+
+- Transfer learning reuses the model that was created by machine learning experts and that has been trained on a large data set
+
+## Transfer Learning
+
+The idea behind transfer learning is that neural network that has been trained on a large dataset can apply its knowledge to a dataset it has never seen before. That's why it is called transfer learning because we transfer the learning of an existing model to a new dataset.
+
+In order to perform transfer learning, we need to change the last layer of the pre-trained model. This is because each dataset has a different number of output classes. 
+
+![pre_trained_model!](./pre_trained_model.png)
+
+![pre_trained_model2!](./pre_trained_model2.png)
+
+Also, we have to make sure that we don't change the pre-trained part of the model during the training process. This is done by setting the variables of pre-trained model to non-trainable. This is called freezing the model. By freezing the parameters, we'll ensure that only the variables of the last classification layer get trained. The variables from the other layers of the pre-trained model are kept the same.
+
+A nice additional benefit from this is they will also reduce the training time significantly because we're only training variables of our last classification layer and not the entire model.
+
+## MobileNet
+
+As we mentioned before, there have been very successful models that have performed very well on the ImageNet competition such as AlexNet, Inception and Resonant. These neural networks tend to be very deep and contains thousands and even millions of parameters. The large number of parameters allows the networks to learn more complex patterns and therefore achieve higher accuracies. However, having such a large number of parameters also means that the model will take a long time to train, make predictions, use a lot of memory and very computationally expensive.
+
+In this lesson, we'll use a state of the art convolutional neural network called  MobileNet. MobileNet uses a very efficient network architecture that minimizes the amount of memory and computational resources needed while maintaining a high level of accuracy. This makes MobileNet ideal to work on mobile devices that have limited memory and computational resources.
+
+ MobileNet was developed by Google and was trained on the ImageNet dataset. Since it is being trained on ImageNet, it has 1000 output classes far more than two we have in our cats and dogs dataset.
+
+To perform transfer learning, we'll download the features of MobileNet without the classification layer. In TensorFlow, the download features can be used as regular Keras layers with a particular input size. Since MobileNet was trained on ImageNet, we have to match the same input size that was used during training. In our case, MobileNet was trained on RGB images of a fixed size of 224 by 224 pixels.
+
+![mobile_net!](./mobile_net.png)
+
+TensorFlow has a repository of pre-trained model called TensorFlow hub. TensorFlow hub also has pre-trained models where the last classification layer has been stripped out. Here, you can see a version of MobileNet version two.
+
+![tensor_flow_hub!](./tensor_flow_hub.png)
+
+Simply add our classification layer to the end of our model. Since our dogs and cats dataset has only two classes, we'll add a dense layer with two outputs and a softmax activation function to our sequential model. This dense layer will be our new classifier and it needs to be trained.
+
+![mobile_net2!](./mobile_net2.png)
+
+We can train our sequential model just as we did previously using the `fit` method.
+
+![mobile_net3!](./mobile_net3.png)
+
+## Colab: Cats and Dogs with Transfer Learning
+
+[Google Colab](https://colab.research.google.com/github/tensorflow/examples/blob/master/courses/udacity_intro_to_tensorflow_for_deep_learning/l06c01_tensorflow_hub_and_transfer_learning.ipynb)
+
+What is a bit curious here is that validation performance is better than training performance, right from the start to the end of execution.
+
+One reason for this is that validation performance is measured at the end of the epoch, but training performance is the average values across the epoch.
+
+## Understanding Convolutional Neural Networks
+
+One way to try to understand CNNs is by visualizing the convolutional layers
+
+[Understanding your Convolution network with Visualizations](https://towardsdatascience.com/understanding-your-convolution-network-with-visualizations-a4883441533b)
+
+## Summary
+
+In this lesson we learned how we can use Transfer Learning to create very powerful Convolutional Neural Networks with very little effort. The main key points of this lesson are:
+
+- **Transfer Learning**: A technique that reuses a model that was created by machine learning experts and that has already been trained on a large dataset. When performing transfer learning we must always change the last layer of the pre-trained model so that it has the same number of classes that we have in the dataset we are working with.
+
+- **Freezing Parameters**: Setting the variables of a pre-trained model to non-trainable. By freezing the parameters, we will ensure that only the variables of the last classification layer get trained, while the variables from the other layers of the pre-trained model are kept the same.
+
+- **MobileNet**: A state-of-the-art convolutional neural network developed by Google that uses a very efficient neural network architecture that minimizes the amount of memory and computational resources needed, while maintaining a high level of accuracy. MobileNet is ideal for mobile devices that have limited memory and computational resources.
+
+You also used transfer learning to create a Convolutional Neural Network that uses MobileNet to classify images of Dogs and Cats. You were able to see that transfer learning greatly improves the accuracy achieved in the Dogs and Cats dataset. As an exercise, you were able to apply everything you learned in this lesson to create your own CNN using MobileNet to classify images of flowers.
+
+# Saving and Loading Models
+
+Very deep and complex models can take days or even weeks to train. Therefore, you'll be extremely impractical if every time we wanted to use our models to make predictions we had to go back and train them from scratch.
+
+Luckily, we can avoid this by saving our models after we finished training them.
+
+Saving our trained models allow us to:
+
+- Share our models with others
+
+- We can always improve our model with new data by resuming training right where we left off
+
+TensorFlow provides a direct way to take your saved model and deploy them on different platforms such as mobile and embedded devices, servers and even web browser. TensorFlow makes it all possible through its saved model format. A `SavedModel` contains all the information about model including weight values, the models architecture and even the optimizers configuration.
+
+![saved_model!](./saved_model.png)
+
+## Colab: Saving and Loading Models
+
+### Save as Keras `.h5` model
+
+we've trained the model, we can save it as an HDF5 file, which is the format used by Keras. Our HDF5 file will have the extension '.h5', and it's name will correpond to the current time stamp.
+
+```python
+t = time.time()
+
+export_path_keras = "./{}.h5".format(int(t))
+print(export_path_keras)
+
+model.save(export_path_keras)
+```
+
+You can later recreate the same model from this file, even if you no longer have access to the code that created the model.
+
+This file includes:
+
+- The model's architecture
+- The model's weight values (which were learned during training)
+- The model's training config (what you passed to `compile`), if any
+- The optimizer and its state, if any (this enables you to restart training where you left off)
+
+### Load the Keras `.h5` Model
+
+We will now load the model we just saved into a new model called `reloaded`. We will need to provide the file path and the `custom_objects` parameter. This parameter tells keras how to load the `hub.KerasLayer` from the `feature_extractor` we used for transfer learning.
+
+```python
+reloaded = tf.keras.models.load_model(
+  export_path_keras, 
+  # `custom_objects` tells keras how to load a `hub.KerasLayer`
+  custom_objects={'KerasLayer': hub.KerasLayer})
+
+reloaded.summary()
+```
+
+### Export as SavedModel
+
+You can also export a whole model to the TensorFlow SavedModel format. SavedModel is a standalone serialization format for Tensorflow objects, supported by TensorFlow serving as well as TensorFlow implementations other than Python. A SavedModel contains a complete TensorFlow program, including weights and computation. It does not require the original model building code to run, which makes it useful for sharing or deploying (with TFLite, TensorFlow.js, TensorFlow Serving, or TFHub).
+
+The SavedModel files that were created contain:
+
+- A TensorFlow checkpoint containing the model weights.
+- A SavedModel proto containing the underlying Tensorflow graph. Separate graphs are saved for prediction (serving), train, and evaluation. If the model wasn't compiled before, then only the inference graph gets exported.
+- The model's architecture config, if available.
+
+```python
+t = time.time()
+
+export_path_sm = "./{}".format(int(t))
+print(export_path_sm)
+
+tf.saved_model.save(model, export_path_sm)
+```
+
+### Load SavedModel
+
+```python
+reloaded_sm = tf.saved_model.load(export_path_sm)
+```
+
+Now, let's use the `reloaded_sm` (reloaded SavedModel) to make predictions on a batch of images.
+
+```python
+reload_sm_result_batch = reloaded_sm(image_batch, training=False).numpy()
+```
+
+### Loading the SavedModel as a Keras Model
+
+The object returned by `tf.saved_model.load` is not a Keras object (i.e. doesn't have `.fit`, `.predict`, `.summary`, etc. methods). Therefore, you can't simply take your `reloaded_sm` model and keep training it by running `.fit`. To be able to get back a full keras model from the Tensorflow SavedModel format we must use the `tf.keras.models.load_model` function. This function will work the same as before, except now we pass the path to the folder containing our SavedModel.
+
+```python
+reload_sm_keras = tf.keras.models.load_model(
+  export_path_sm,
+  custom_objects={'KerasLayer': hub.KerasLayer})
+
+reload_sm_keras.summary()
+```
+
+You can use it later for deployment on different platform.
