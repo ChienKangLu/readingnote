@@ -1676,3 +1676,525 @@ reload_sm_keras.summary()
 ```
 
 You can use it later for deployment on different platform.
+
+# Time Series Forecasting
+
+## Introduction
+
+What is time series?
+
+- It is an ordered sequence of values usually equally spaced over time every year, day, second or even every few microseconds
+
+- There is a single value at each time-step. These time series are called univariate.
+
+- Some time series have multiple values at each time-step. So they're called multivariate time series
+
+![univariate_time_series!](./univariate_time_series.png)
+
+![multivariate_time_series!](./multivariate_time_series.png)
+
+## Application
+
+- The most obvious being predicting the future which is called **forecasting**
+
+- You may also want to predict the past if that makes any sense. This might be useful if there's missing or corrupted data in time series. This is called Imputation. Or maybe you're interested in the underlying process that generated the time series
+
+- Time series analysis can also be used to detect anomalies. For example, monitor website traffic to detect abnormal activities
+
+## Common Patterns
+
+Many time series gradually drift up or down. This is called a trend. Upward trend 
+
+![trend!](./trend.png)
+
+This time series has some seasonality. This is when patterns repeat at predictable intervals and particular peaks and troughs. For example, gift sales jumps up every winter around the holiday season and temperature drops every night
+
+![seasonality!](./seasonality.png)
+
+Some time series have both trend and seasonality
+
+![trend_seasonality!](./trend_seasonality.png)
+
+Sometimes series are just completely unpredictable (White noise). The best you can do with this is to identify the probability distribution and find its parameters. For example, it is a Gaussian distribution with mean zero and variance one. You can see if you plot a histogram of all values, it will look like a bell curve. With that, you will usually want to forecast the mean
+
+![white_noise!](./white_noise.png)
+
+Trend and seasonality and noise
+
+![trend_seasonality_noise!](./trend_seasonality_noise.png)
+
+## Colab: Common Patterns
+
+https://github.com/tensorflow/examples/blob/master/courses/udacity_intro_to_tensorflow_for_deep_learning/l08c01_common_patterns.ipynb
+
+When you doing time series forecasting or analysis, it's often good to untangle all of these components from your time series and possibly study them separately. You can isolate the trend, seasonal pattern and white noise. If you do that, it'll be simpler to study the whole time series rather than studying the whole thing at once
+
+## Forecasting
+
+The simplest approach is to **take the last value and assume that the next value will be the same**. This is called **naive forecasting** (you are just saying tomorrow will be the same as today)
+
+![naive_forecasting!](./naive_forecasting.png)
+
+It's often a good idea to measure the performance of naive forecasting just to get the baseline. It's sometime surprisingly difficult to beat, but how do you measure the performance? To measure the performance of our forecasting model, we typically want to split the time series into a training period, a validation period and a test period. This is called fixed partitioning.
+
+![fix_partitioning!](./fix_partitioning.png)
+
+If time series has some seasonality, you generally want to ensure that each period contains a whole number of seasons. For example, one year or two years or three years. If the time series has a yearly seasonality, you generally don't want one year and a half or else some months would be represented more than others.
+
+Next, you train your model on the training period and you evaluate it on the validation period. You can iterate multiple times, to find the right model architecture and tunes its hyper parameters until you reach the desired performance on the validation period. After that, you can train your best model one last time on the whole training plus validation period and evaluate it on the test period to get and idea of how well your model would perform in production. It will not always be a very reliable estimate, because the time series may behave differently in the future but hopefully it will be a reasonable estimate. Then you you should train your model one last time on the full time series including the test set before you deploy your model to production. This is different from usual machine learning best practices where we never train on the test set but it's necessary for time series because the most recent period is usually the one that contains the most useful information to predict the future.
+
+Now because the test set is not as reliable as in regular machine learning and because we need to use it for training before deploying on model. it's common to just use a training period and validation period. In other words, the test period is the future. For simplicity, we'll do this in the rest of this course 
+
+![fix_partitioning2!](./fix_partitioning2.png)
+
+Fix partitioning is simple and intuitive, but there is another way. We start with short training period and we gradually increase it, say by one day at a time or one week at a time. At each iteration, we train the model on the training period and we use it to forecast the following day or the following week in the validation period. This is called roll forward partitioning. The drawback is that it will require much more training time, but the benefit is that it will more closely mimic the production conditions since you will generally want to retain your model regularity as you get new data in production. However, for simplicity, we'll use fixed partitioning.
+
+![roll_forward_partitioning!](./roll_forward_partitioning.png)
+
+## Colab: Naive Forecasting
+
+https://github.com/tensorflow/examples/blob/master/courses/udacity_intro_to_tensorflow_for_deep_learning/l08c02_naive_forecasting.ipynb
+
+Compute the mean absolute error between the forecasts and the predictions in the validation period
+
+```python
+errors = naive_forecast - x_valid
+abs_errors = np.abs(errors)
+mae = abs_errors.mean()
+mae
+```
+
+## Metrics
+
+Once we have a model and period we can evaluate the model on. We need a metric. The most common metric to evaluate the forecasting performance of the model is the mean squared error (mse). We just compute the errors which are the difference between the forecast and the actual values over the evaluation period, then we square them and compute the mean of the squares. 
+
+Sometimes, we compute the square root of the msc which is called the root mean squared error (rmse) which has the advantage of having roughly the same scale as the values in the time series. So it is easier to interpret.
+
+Another common metric is the mean absolute error (mae, also called the mean absolute deviation or mad). This is just the mean of the absolute values of the errors. It does not penalize large errors as much as mse. So depending on your tasks, you may prefer the mae or the mse.
+
+For example, if large errors are potentially dangerous and they cost you much more than smaller error then you may prefer the mse. But if your gain or your loss is just proportional to the size of error, then the mae may be better.
+
+Lastly, you can measure the mean absolute percentage error (mape). This is the mean ratio between the absolute error and the absolute value. This gives an idea of the size of the errors compared to the values
+
+![metrics!](./metrics.png)
+
+```python
+keras.metrics.mean_absolute_error(x_valid, naive_forecast).numpy()
+# 5.9379
+```
+
+Another simple forecasting method is to compute a moving average. This is just a mean of the past N values. This is nicely to eliminates a lot of noise but it does not anticipate trend and seasonality. So it ends up performing worse than naive forecasting in this case. We get about a mean absolute error of 7.1. 
+
+![moving_average!](./moving_average.png)
+
+One way to fix it is to remove the trend and seasonality from the time series. For this, a simple technique is to use differencing. Instead of studying the time series itself, we study the difference between the value at time `t` and the value one year earlier. We get this differenced time series which has no trend and seasonality. We can then use a moving average to forecast this time series which gives us these forecasts. But these are just forecasts for the differenced time series, not the original time series.
+
+![moving_average_on_differenced_time_series!](./moving_average_on_differenced_time_series.png)
+
+To get the final forecasts for the original time series, we need to add back the value at time `t-365`, then we get this nice forecasts. Thus if we measure the mean absolute error on the validation period, we get about 5.8. So it's slightly better than naive forecasting but not tremendously better. So you may have noticed that our moving average removed a lot of noise but our final forecasts are still pretty noisy. So where does these noise come from?
+
+![restoring_the _trend_and_seasonality!](./restoring_the _trend_and_seasonality.png)
+
+Well, from the past values that we added back to our forecasts. <u>So we can improve this forecasts by also removing the past noise using a moving average</u>. If we do that, we can get much smoother forecasts. In fact, it gives us a mean absolute error over the validation period of just about 4.6. That's much better than all previous methods. In fact, since the time series is generated, we can compute that a perfect model would get  a mean absolute error of about 4.0 due to the noise. Apparently, with this approach it's not too far from optimal. **So keep in mind before you rush into deep learning. Simple approaches may work just fine**. Note that we used a trailing window when computing the moving average of present values from `t-30` to `t-1`. But we use a centered window to compute the moving average of past values from one year ago. Specifically, from `t-one_year-5days` to `t-one_year+5days`. Moving averages using centered windows are more accurate than using trailing windows but we can not use centered windows to smooth present values since we don't know the future value. However, to smooth past values, we can afford to use centered windows
+
+![smooth_both_past_and_present_values!](./smooth_both_past_and_present_values.png)
+
+## Colab: Moving Average
+
+https://github.com/tensorflow/examples/blob/master/courses/udacity_intro_to_tensorflow_for_deep_learning/l08c03_moving_average.ipynb
+
+Calculate mean absolute error by Keras
+
+```python
+keras.metrics.mean_absolute_error(x_valid, naive_forecast).numpy()
+```
+
+When you are doing moving average forecasting, you're saying tomorrow will be closed to the average of the values over the past few days, perhaps the last 30 days for example.
+
+## Time Windows
+
+Let's see how we can forecast the time series using machine learning model. The simplest approach is to build a model that will learn to forecast the next time step, given the time window before it. Given a time window such as this one. We want the model to forecast the next time step. Before we can do that, we need to choose the window size. For example, thirty days, and we must prepare a data set of all possible time windows of that size.
+
+![ machine_learning_on_time_window!](./ machine_learning_on_time_window.png)
+
+```python
+dataset = tf.data.Dataset.range(10)
+dataset = dataset.window(5, shift=1, drop_remainder=True)
+for window_dataset in dataset:
+  for val in window_dataset:
+    print(val.numpy(), end="")
+    print()
+```
+
+Each window is itself represented as a data set. In other word, the `window` method returns a data set of window datasets. Note that the last windows are shorter than five times steps since we reach the end of the series. But to train our machine learning models, we'll generally prefer to have windows of the same length. So we should drop the final short windows. To do that, we just need to set `drop_remainder` equal to `true`.
+
+Our machine learning models will still want Windows represented as tensors not as data set. Asking it to create batches of size five. But since each window contains exactly five elements, this will produce a single batch contains a tensor of size five. Each element is a tensor of size five.
+
+```python
+dataset = tf.data.Dataset.range(10)
+dataset = dataset.window(5, shift=1, drop_remainder=True)
+dataset = dataset.flat_map(lamda window: window.batch(5))
+for window in dataset:
+  print(window.numpy())
+```
+
+To train a machine learning model, we will need input features and targets. We can use the first four times steps as the inputs and the last time step as the target. To do this, we called the `dataset.map`.
+
+```python
+dataset = tf.data.Dataset.range(10)
+dataset = dataset.window(5, shift=1, drop_remainder=True)
+dataset = dataset.flat_map(lamda window: window.batch(5))
+dataset = dataset.map(lamda window: (window(:-1), window(-1:))
+for x, y in dataset:
+  print(x.numpy(), y.numpy())
+```
+
+Gradient descent works best when the instance int the data set are IID, meaning independent and identically distributed. So let's shuffle all these windows so that each training batch contains fairly independent windows.
+
+```python
+dataset = tf.data.Dataset.range(10)
+dataset = dataset.window(5, shift=1, drop_remainder=True)
+dataset = dataset.flat_map(lamda window: window.batch(5))
+dataset = dataset.map(lamda window: (window(:-1), window(-1:))
+dataset = dataset.shuffle(buffer_size=10)
+for x, y in dataset:
+  print(x.numpy(), y.numpy())
+```
+
+Finally when we train the machine learning model, We typically provide batches of instances not just one instance at a time. `prefech` ensures that while the model is working on one batch of data, the data set will already be prepared the next batch in parallel.
+
+```python
+dataset = tf.data.Dataset.range(10)
+dataset = dataset.window(5, shift=1, drop_remainder=True)
+dataset = dataset.flat_map(lamda window: window.batch(5))
+dataset = dataset.map(lamda window: (window(:-1), window(-1:))
+dataset = dataset.shuffle(buffer_size=10)
+dataset = dataset.batch(2).prefetch(1)
+for x, y in dataset:
+  print(x.numpy())
+  print(y.numpy())
+```
+
+```python
+tf.data.Dataset.from_tensor_slices(series)
+```
+
+## Colab: Time Windows
+
+https://github.com/tensorflow/examples/blob/master/courses/udacity_intro_to_tensorflow_for_deep_learning/l08c04_time_windows.ipynb
+
+## Forecasting with Machine Learning
+
+Let's start by training a simple linear regression model. It is our first machine learning model capable of forecasting a time series. It just performs a linear combination of the past 30 values to forecast the next timestamp.
+
+![forecast_linear_model!](./forecast_linear_model.png)
+
+- Since we want to forecast single value, we just need a single unit
+
+- We use `SGD` optimizer with some momentum and this often converges much faster than a basic SDG optimizer (or adam or RMSprop)
+
+- We use the `Huber` loss for training. It is quadratic for small errors just like the mean squared loss. But it is linear for large errors just like the mean absolute error. It is a good loss function to use when you want to optimize the mean absolute error.
+
+- We can use the mean absolute error directly as our loss function but the `huber` loss converges much better.
+
+- We specify the mean absolute error as our main metric
+
+- In this example, we also choose to use the `EarlyStopping` callback. Keras will call this callback during training at the end of each epoch and it will interrupt training when the models stops improving on the validation period. More specifically, Keras will measure the validation loss at the end of each epoch and this callback will interrupt training if the best validation loss remains unchanged for 10 consecutive epochs. This is a very common and useful techniques to reduce overfitting. When you use this callback, you can set the number of epochs in the `fit` method to a large value since training will generally stop long before that. 
+
+![forecast_over_validation_period!](./forecast_over_validation_period.png)
+
+- forecast over validation period
+
+- Do not shuffle the window and do not split them into the input features and targets since we just want to make prediction
+
+- Use `prdeict` to get all the forecasts
+
+![forecast_over_validation_period2!](./forecast_over_validation_period2.png)
+
+- Pass the trained `model` and the time `series` starting 30 times steps before the start of the validation period so that our forecast will start at the first time step of he validation period. This means that there is a bit overlap between the data we use for training and the data we use for forecast on the validation period. (Skipped for now) For this reason, we should probably shorten the training period by 30 days to avoid this overlap
+
+- Our prediction is two-dimensional. The first dimension is the batch dimension. In this case, each instance in the batch is a small window of 30 time steps and the output is the corresponding forecasts for the next time step. The second dimension is the dimensionality of the forecast at each time step. Since we are forecasting a univariate time series, we use a dense layer with a single neuron. So the second output dimension has a size of one.
+
+- `lin_forecast` is a 1D array containing one forecast value per time step in the validation period
+
+![linear_mode_forecast!](./linear_mode_forecast.png)
+
+If we measure the mean absolute error, we get about 4.9. This is much better than naive forecasting and better than our first two moving average forecasts, but it does not beat our last moving average approach. Perhaps we can do much better with more complex model.
+
+It's quite easy to build a dense model with two hidden relu layers.
+
+![forecast_linear_model2!](./forecast_linear_model2.png)
+
+We can train it exactly like the linear model except we probably want to adapt the learning rate to get the best performance. For example, we can try training the model for a few epochs using a tiny learning rate at first and gradually increase it until the last starts shooting backup. The point at which it stop going down smoothly is usually a good learning rate to use.
+
+![finding_a_good_learning_rate!](./finding_a_good_learning_rate.png)
+
+The model takes more epochs to train and it does not outperform the linear model. In fact, the mean absolute error on the validation period is about 4.9 just like the linear model. This is still pretty good considering that we didn't even de-trend and de-seasonalized the data. You can try removing trend and seasonality and you should reach an even better performance. 
+
+![three_layer_dense_forecasting!](./three_layer_dense_forecasting.png)
+
+## Colab: Forecasting with Machine Learning
+
+https://github.com/tensorflow/examples/blob/master/courses/udacity_intro_to_tensorflow_for_deep_learning/l08c05_forecasting_with_machine_learning.ipynb
+
+Set `seed` for TensorFlow and Numpy to ensure that your code is repeatable.
+
+```python
+tf.random.set_seed(42)
+np.random.seed(42)
+```
+
+Tell it change learning rate during training. Starts from a very small learning rate and telling it to increase it gradually so that every 30 epochs it's multiplied by 10. This is a quick increase of the learning rate durning training. Then we can choose the learning rate!
+
+```python
+window_size = 30
+train_set = window_dataset(x_train, window_size)
+
+model = keras.models.Sequential([
+  keras.layers.Dense(1, input_shape=[window_size])
+])
+
+lr_schedule = keras.callbacks.LearningRateScheduler(
+    lambda epoch: 1e-6 * 10**(epoch / 30))
+optimizer = keras.optimizers.SGD(lr=1e-6, momentum=0.9)
+model.compile(loss=keras.losses.Huber(),
+              optimizer=optimizer,
+              metrics=["mae"])
+history = model.fit(train_set, epochs=100, callbacks=[lr_schedule])
+```
+
+Early stopping
+
+```python
+model = keras.models.Sequential([
+  keras.layers.Dense(1, input_shape=[window_size])
+])
+optimizer = keras.optimizers.SGD(lr=1e-5, momentum=0.9)
+model.compile(loss=keras.losses.Huber(),
+              optimizer=optimizer,
+              metrics=["mae"])
+early_stopping = keras.callbacks.EarlyStopping(patience=10)
+model.fit(train_set, epochs=500,
+          validation_data=valid_set,
+          callbacks=[early_stopping])
+```
+
+## RNNs
+
+Now it's time to look at recurrent neural networks, RNNs. An RNN is a neural network which contains recurrent layers and a recurrent layer is a layer that can sequentially process a sequence of inputs. RNN can take all sequences as inputs. In this course, we'll use them to process time series, but you can also use them to process other sequences such as sentences. In this example, the RNN contains two recurrent layers and one final dense layer, which serve as the output layer. You can feed a batch of sequences such as Windows from a time series, and it can output a batch of forecasts, just like the previous models we trained. However, one difference here is that the full input shape is three-dimensional. The first dimension is the batch size, the second dimension represents time steps and the final dimension represents the dimensionality of inputs at each time step. For example, if it's a univariate time series, then the last dimension is one. For a multivariate time series, it would be two or more. One previous models only had two-dimensional inputs, the batch dimension and a second dimension with all the input features, with one feature per time step since we are dealing with a univariate time series.
+
+![rnn!](./rnn.png)
+
+Now let's zoom in one of these recurrent layers to see how it works. A recurrent layer is composed of a single memory cell, which is used repeatedly to compute the outputs. It can be a simple dense layer or a complex memory cell such as LSTM cell or JRU cell. It's important to understand that a recurrent layer contains a single cell. In this diagram you see multiple cells, but it actually the same cell that is reused multiple times by the layer. At each time step, the memory cell takes the value of the input sequence at that time step, started with `x_0`, then `x_1`, and so on, and it produces the output for the current time step, starting with `y hat 0`, then `y hat 1`, and so on. But the memory cell also produces another output at each time step called a state vector or sometimes a context vector, starting from `H_1`, then `H_1`, and so on. As you can see, this state vector is fed as an additional input to the memory cell at the next time step. This is actually why it is called a recurrent layer. Part of the output of the memory cell at one time step is fed back to itself at the next time step. The beauty of this architecture is that it can handle sequences of any length using a constant number of parameters. Namely, the parameters of the memory cell. It's a bit like when you're reading a sentence. As you're reading, you're focusing on one word at a time, but you also know the context of each word, and you're updating that context all the time based on what you read.
+
+![recurrent_layer!](./recurrent_layer.png)
+
+So as you may know, in theory, a neural network can approximate any continuous function given it has enough neurons and you can train it properly. Similarly, if you have an RNN with big memory cells with a lot of neurons and you manage to train them successfully, you can in theory reproduce any algorithm or approximate any algorithm or any program. So it makes it a very powerful beast placed in theory. Now, in practice, it would require a lot of training data which you don't always have when you're dealing with and unfortunately RNNs are pretty tricky to train. They are sometimes unstable
+
+## Recurrent Layer
+
+Now, let's go back to the recurrent layer and take sometimes to really understand the shape of the data that flows through it. As I mentioned earlier, the **inputs** are three-dimensional. In this example, I'm assuming that we're feeding a batch of `4` windows from a time series each with `30` time steps. **Since it's an univariate time series, there is a single value per time step**. So the shape is `4 x 30 x 1`. At each time step the memory cell takes a `4` by `1` matrix as input along with the state matrix from previous time step. I'll come back to the state matrix in a second. Now let's suppose the memory cell is composed of just `3` neurons, also called units. The output matrix at each time step will then be `4` by `3` because the batch size is `4` and the number of units is `3`. This means that the full output of the layer is three-dimensional, just like the full input. The first dimension is the batch size, `4` in this case. The second dimension is the number of steps, `30` in this case. The last dimension is the output dimensionality which is equal to the number of units, in this case `3`. So this layer will output a tensor of shape `4` by `30` by `3`. This output contains `4` multivariate time series and it can be passed on to another recurrent layer and so on. Now in simple, RNN, the memory cell is regular dense layer and the state matrix is just a copy of the output matrix. For example, `H_0` is just a copy of `Y_0`. `H_1` is just a copy of `Y_0` and so on. So at each time step the memory cell knows what the current input is and also knows what the previous output was. 
+
+![recurrent_layer2!](./recurrent_layer2.png)
+
+In some cases you want to input a sequence, but you don't want to output a sequence. You just want to output a single vector for each instance in the batch. This is called a sequence to vector RNN. It's quite simple. All you need to do is ignore all outputs except for the last one. In fact, in Keras this is the default behavior of all recurrent layers. If you want a recurrent layer to output a sequence you have to set the argument `return_squences` equals to `True` when creating the layer.
+
+![sequence_to_vector!](./sequence_to_vector.png)
+
+For example, this RNN contains two recurrent layers. The first layer has  `return_squences` equals to `True`, so it outputs a sequence which is then feed to the second recurrent layer. But this recurrent layer does not have `return_squences` equals to `True`, so it defaults to `False` and it only outputs the final time step. Since there are `100` of units in that second recurrent layer, its output at each time step are `100` dimensional, and in this case only the last output is sent to the next layer, which is a dense layer with single neuron. This final output layer will output a single value for each instance in the batch. As I mentioned earlier, the input shape of the whole RNN is three-dimensional. There is a batch size, the number of time steps, and the dimensionality of the input sequence, which is one for univariate series. But notice that the input shape arguments of the first layer is `[None, 1]`  What does that mean? Well, remember that Keras assumes that the first dimension is the batch size and that it can have any size at all. And the next dimension is the number of time steps, but we define is as `None`, which means that this RNN will handle sequences of any length, this is new. With regular dense layers you have to specify exactly how many features you will get as input for each instance. But with recurrent layer since it just reuses the same memory cell at each time step, it can handle sequences of any length. Then the last dimension is `1` because once again we're dealing with a univariate time series. Since we're using simple RNN layer, it is based on the simple RNN cell class which behaviors very much like a dense layer. At each time step it performs a weighted sum of it's input, which includes the inputs for that time step and the state from the previous time step. Then it applies an activation function, and that's about it. Notice we didn't specify the activation function, that's because it's default to the hyperbolic tangent function.
+
+![rnn_code_example!](./rnn_code_example.png)
+
+So you might wonder why don't we use the ReLU activation function instead. Well the problem is RNNs have a tendency to have unstable gradients. The gradients can vanish during training or they can explode, especially if you're using function like the ReLU activation function which is non saturating. In other words, it can grow arbitrarily large.  So by using the hyperbolic tangent `10H` function instead, it's a bit more stable since it will saturate. But you might still get vanishing gradients, so training maybe super slow.
+
+Now if we set `return_squences` equals `True` in all recurrent layers, then they will all output sequences, and thus the dense layer will get a sequences as input. In that case, the way Keras handles this is that it actually applies the same dense layer independently at each time step. I represented the dense layer multiple times, but it is important to understand that it's the same dense layer which is used independently at each time step. This gives a sequence to sequence RNN. You feed a batch of sequences and it outputs a batch of sequences of the same length. In this case we used a single unit in the output layer, so the output sequence will be univariate just like the input sequence. But the dimensionality of output sequence will not always match the dimensionality of input sequence, really depends on the task.
+
+![sequence_to_sequence!](./sequence_to_sequence.png)
+
+## Forecasting with an RNN
+
+All right, we're now ready to train our first RNN to forecast the same-time series a earlier. Now all we need is an RNN that can take in a batch of time windows and forecast the next value for each window in the batch, that's sequence to vector RNN. so we can just use the model we looked at earlier, however, since our data set was built to return two-dimensional batches of windows, where the first dimension is the batch size and the second dimension is the number of time steps, we need to add an extra dimension. Remember that an RNN expects 3D inputs: batch size, number of time steps and series dimensionality, which is one in this case. We could go ahead and update our window data set function, but it's not to hard to make the model itself to fix the shape of inputs using a lambda layer that calls `tf.expand_dim()` and add an extra dimension at the end. Note that we define the input shape as `None`, meaning the model will support sequences of any length. We also scale the outputs by a factor `200`, this is useful since time series has values from `40` to a `160` but the recurrent layers use the hyperbolic tangent activation functions as I explained earlier, which outputs values between `-1` and `1`. So scaling the outputs up by a factor of `200` will help training.
+
+![forecasting_with_rnn!](./forecasting_with_rnn.png)
+
+After training, this RNN we get these forecasts. They are not quite as good as the forecast from our previous models. The mean absolute error is about `5.2`, you can try to improve this model by fine tuning gets hyper-parameters. For example, there are probably way too many neurons and perhaps a single recurrent layer would suffice. 
+
+![sequence_to_vector_forecasting!](./sequence_to_vector_forecasting.png)
+
+However, you'll see training RNN is actually tricky, if you set the learning rate too high, training is unstable and the RNN doesn't learn, but if you set the learning rate low enough to avoid the instabilities, training is really slow. Moreover, during training the loss jumps up and down up unpredictably. So if you use early stopping, it may interrupt training too early. In this case, make sure you set the`patience` parameter to a large enough value, however, this means that the final model will be long after the best model seen during training and may be much worse. So it's probably a good idea to save checkpoints every time the model the model improves and rollback to the best model at the end of training. To do that, you can use the method `checkpoint` callback and set `save_best_only` to `True`. At each epoch, this callback will save the model if it has a best validation performance seen so far. At the end of training, we can jus load the last model saved and it will be the one with the lowest validation error.
+
+![checkpoint!](./checkpoint.png)
+
+## Back Propagation Through Time
+
+One of the reasons why it's difficult to train on RNN is that it's equivalent to training a fairly deep neural network with one layer per time step. Indeed during training, once the loss has been computed back-propagation computes the gradients of loss with regards to every trainable parameter in the neural network, and to do so, it propagates  the gradients backwards through the RNN. This means that the gradients flow down the RNN layers, but they also flow backwards through time. Deep learning library like TensorFlow do this by unrolling the RNN through time as shown here, and treating the resulting network as irregular feed-forward network. So the RNN is like a very deep net. The more time steps there are, the deeper it is. The gradients tend to vanish or explode when going backward through many layers and many time steps. So training could be quite slow especially to detect a long-term patterns.
+
+![back_propergation_through_time!](./back_propergation_through_time.png)
+
+To speed things up, one approach is to train RNN to make prediction at each time and every time step. Instead of a sequence to vector RNN, now we have a sequence to sequence RNN. The labels are just equal to the inputs but shifted one time step into the future. For example, at time step `0`, the RNN gets `X_0` as input and must try to output `X_1`. At time step `1`, it gets `X_1` as input plus the previous state `H_0` and it must try to output `X_2`. So instead of looking at the inputs and trying to forecast a single value in this case `X_30`, the RNN tries to forecast the next time step at each and every time step based on the past values. The advantage of this approach is that it provides much more gradients for training. If the forecast is bad at one time step, there will be a strong loss at that time step and it will backpropagate directly to update the weights at that time step. This can stabilize and speed-up training. Note that it is just a trick to speed up training, we don't really care about the outputs except for the very last time step. After training, we will just drop all the outputs and only look at the very last one when we make predictions.
+
+![speed_up_rnn!](./speed_up_rnn.png)
+
+To implement this sequence to sequence approach, we write a new function that will create a dataset, just like we did earlier except that the labels are now sequences shift by `1` step into the future. Also, we might as well return sequences that have the proper 3D shape for recurrent layers. So we don't have to use a Lambda layer to reshape them at the beginning of the RNN. For this we called `tf.expand_dims()` at the beginning of the function.
+
+![seq_2_seq_window!](./seq_2_seq_window.png)
+
+Next, we call this function to create two datasets; One for the training and one for validation period, and recreate the RNN model. Since it is a sequence to sequence model, we make sure we set `return_sequences` equals `True` in every recurrent layer including the laster one. This model will take windows of univariate time series as input and it will output windows of the same length, also univariate. Once we train it, the output window should be close to the input but shifted one time step into the future.
+
+![seq_2_seq_model!](./seq_2_seq_model.png)
+
+Next, we compile and train the model exactly like we did earlier using `Huber` loss and momentum optimization in this case. Again, you could also try using other optimizers.
+
+![seq_2_seq_train!](./seq_2_seq_train.png)
+
+After training, this is what the forecasts look like. They're much better than using the sequence to vector RNN and the mean absolute error is about 5.0. That's pretty good but not so as good as the dense models or the moving average approach. So it is a good lesson to remember. RNN can be impressive on some time series especially when there is a lot of training data for high-frequently, a time series and when the signal-to-noise ratio is high but they don't always work well.
+
+![seq_2_seq_forecast!](./seq_2_seq_forecast.png)
+
+## Colab: Forecasting with RNNs
+
+https://github.com/tensorflow/examples/blob/master/courses/udacity_intro_to_tensorflow_for_deep_learning/l08c06_forecasting_with_rnn.ipynb
+
+We'll build two types of models. First we'll build a **sequence to vector RNN** and then we'll build a **sequence to sequence RNN**.
+
+## Stateless and Stateful RNNs
+
+So in particular, the way we trained that the RNN up to now was to show them short sequences of just 30 time steps. There is no way they can learn patterns longer than that. So if we want them to learn more longer patterns, we have two options. The first option is to use larger windows. However, simple RNNs like the one we used aren't capable of learning very long-term patterns, they'll at most learn a few dozen time steps. Now another option is to train the RNNs completely differently, let's see how.
+
+Until now we've trained our RNNs using the batches of windows sampled anywhere within the time series. In this diagram, the batches are composed of three windows, and the next batch is also composed of windows sampled anywhere within the time series. In fact, these windows can even overlap sometimes. Again the next batch is another set of windows from the time series and so on.
+
+![stateless_rnn!](./stateless_rnn.png)
+
+No for each window, the RNN will run and make its predictions, but to do so, it will use an initial state equal to zero. Internally, it will update the state at each time step until it makes its predictions and during training, there will be a round of back-propagation. But after that, the RNN will chop the final state, it will not keep it. This why we call this type of RNN a **stateless RNN**. It's not really stateless since RNN does have weights which get updated at each iteration, plus the RNN does use the internal state as it's making predictions, and it updates this internal states until it has made its predictions. But at each training iteration, it starts with a fresh zero state and it drop the final state after it has made its predictions and done a back-propagation step. Stateless RNNs are nice and simple to use, but they cannot learn patterns longer than the length of window.
+
+![stateless_rnn2!](./stateless_rnn2.png)
+
+Now let's look at how stateful RNN work. <u>The batches are not sampled randomly anymore</u>. The first batch is composed of a single window at the very beginning of the time series. There is no previous state, so we start with zero state again. The RNN makes its predictions, gradually updating the state vector. Then there is a round of back-propagation but this time, the final state vector is not dropped. It's preserved by the RNN for the next training batch. The next batch is composed of a single window located immediately after the previous one. Instead of starting with zero state vector, we now start with the final state vector of the previous training iteration. The RNN makes its predictions and updating the state vector at each time step. Then there is a round of back-propagation on this window, and again the final state vector is preserved for the next training iteration, and the process continues like this over the whole time series. Once we reach the end of the time series, we get a final state vector, but at this point, we can reset the state and start over at the beginning of the time series. So at each epoch, we feed the network which consecutive windows at each iteration, and at the end of the epoch, we reset the state vector to zero. The benefit of this approach is that the RNN gets a meaningful state vector at the beginning of each training iteration. After training for several epochs, this will allow the RNN to learn long term patterns despite only running back-propagation over a single window at a time. The downside however is that the dataset must be prepared very differently. It's a bit tricky to implement, it' easy to make mistakes and since we only use a single window at each training iteration, well training can be very slow. Moreover, consecutive training batches are very correlated, back-propagation may not work as well. **Because of all these downsides, stateful RNNs are much less used than a stateless RNNs, but on some tasks, they can lead to a better performance.**
+
+![stateful_rnn!](./stateful_rnn.png)
+
+## Implementing a Stateful RNN
+
+We use `shit=window_size` instead of `shift=1` when calling `window` method. With that each window will immediately follow the previous window. The seconds change is that we do not `shuffle` the windows anymore. They need to be consecutive. Lastly, we use batches containing a single window. It's actually possible to implement Stateful RNN using batches of more than one window but it's pretty tricky to implement as you must reset the states partially at each training iteration and do a lot of book-keeping, so most of people don't bother and we don't discuss this here.
+
+![sequential_window_dataset!](./sequential_window_dataset.png)
+
+Now, we can create the datasets for the training and validation periods using this function. And then we create the Stateful RNN to do this with Keras. We just need to set `stateful=True` in every recurrent layer. We must also specify the `batch_input_ shape`  rather than the `input_shape` in the first layer. This is the same as the input shape except we also specify the batch size which is `1` in this implementation. This is needed because Keras has to know how many state vectors it will have to preserve between each training iteration. This also means that this RNN will only be usable with batches of size `1` during training and after training. That's another sever limitation of Stateful RNNs.
+
+![sequential_model!](./sequential_model.png)
+
+Next we can compile and train the model very much like we did earlier. In this example, we also use `EarlyStopping` and we also save the checkpoints at each epoch if the validation loss is the best so far. This way we can rollback to the best model after training exactly like we did earlier.
+
+![sequential_model_fit!](./sequential_model_fit.png)
+
+We need to reset the states at beginning of each and every epoch. The `fit` method does not do that for you. This is because it cannot know when each window in the training batch reaches the end of  the time series. The simplest way to implement this is to define a custom callback. We just need to create a subclass of `keras.callbakcs.Callback` class and implement the `on_epoch_begin` and make it call `self.model.reset_states`. Then we create an instance of this callback class and we pass it to the `fit` method. Now the RNN states will be reset before each epoch. After training this model we get mean absolute error of about `6.3`. It does not work very good. So unfortunately Stateful RNNs aren't improving our metrics 
+
+## Colab: Forecasting with Stateful RNNs
+
+https://github.com/tensorflow/examples/blob/master/courses/udacity_intro_to_tensorflow_for_deep_learning/l08c07_forecasting_with_stateful_rnn.ipynb
+
+## LSTM Cells
+
+So let's take a look at another technique to make RNN learn long-term patterns. We will use LSTM cells, which stands for long-short term memory. This is what it looks like. It's much more complex than the simple RNN cells we have been using up till now, but the extra complexity is worth it. It has a much longer memory than simple RNN cells.
+
+![lstm_cell!](./lstm_cell.png)
+
+You can see that part of the cell is just a good old simple RNN cell, meaning a dense layer with `Tanh` activation function, which take `X_t`, the inputs at current time step plus `H_t-1`, which is a state vector from the previous time step. That's nothing new, but all the other extra components give the cell a long term memory or rather a longer short-term memory hence the name.
+
+![lstm_cell2!](./lstm_cell2.png)
+
+An LSTM cell can detect patterns of over 100 time steps long, but it will still struggle with patterns of several hundreds time steps or more. Now let's see how it works. First it has a state vector that gets propagated from one time step to next just like a simple RNN cell.
+
+![lstm_cell3!](./lstm_cell3.png)
+
+It also has a second state vector, which you can think of as the long-term state vector. Notice that it goes through the cell with just two simple operations at each time step, a multiplication and an addition, that's it. Both are element-wise operations, they applies to each element in the state vector independently from the others. Because it goes through the cell with few computations, the gradients can flow nicely through the cell without vanishing or exploding too much. This is what gives the cell a longer term memory, and it is really the key idea.
+
+![lstm_cell4!](./lstm_cell4.png)
+
+Now, this part of LSTM cell is called the forget gate. It's just a dense layer with a <u>sigmoid activation function so it will output values range from `0-1` </u>. It has the same inputs as the simple RNN cell, the inputs at the current time step plus the short-term state vector from the previous time step. Its output dimension is the same as the long term state vector, thus both can be multiplied item wise. If the forget gate outputs one or a value close to one then the corresponding elements in the long-term memory vector will be multiplied by one, thus it will just be unchanged. However, if the forget gate outputs zero, then the corresponding element in the long-term memory vector will be multiplied by zero, which will erase it. This is why it is called a forget gate. During training, it will gradually learn when to erase part of long-term memory. For example, if the long-term memory holds an information that there is a strong upward trend and the forget gate sees a severe drop in inputs at the current time step, then it will probably learn to erase that part of the long-term memory since the upward trend is over. In short, the forget gate learns when to forget things and when to preserve them.
+
+![lstm_cell5!](./lstm_cell5.png)
+
+Next, this part of LSTM cell is called the input gate. It learns when it should store information in the long-term memory. Notice that it has the same inputs as simple RNN cell and the forget gate. Just like the forget gate, it uses a sigmoid activation function, so it will output values ranging from `0-1` . When it outputs one, the corresponding item in the simple RNN cells outputs will be multiplied by `1` which will leave it unchanged, and the result will be added to long-term vector. Conversely, if the input gate outputs zero, then the corresponding elements in the simple RNN cell outputs will not be added to the long-term state vector. So in short, the input gate decides when it's time to remember something. For example, when it detects a strong upward trend which wasn't there before, It might want to add this information to the long-term state vector.
+
+![lstm_cell6!](./lstm_cell6.png)
+
+Lastly, this part of LSTM cell is called the output gate. It learns which part the long-term state vector should output at each time step. Once again, it outputs values ranging from `0-1`, and it gives a mask that can be multiplied with the long-term state vector at least after it goes through a `Tanh` activation function. This gives the output for the current time step. Note that the short-term state vector is just equal to the output at the current time step.
+
+![lstm_cell7!](./lstm_cell7.png)
+
+There is a long-term state vector which goes through just two operations at each time step, a multiplication then an addition. The memory cells learn when it should forget memories, when it should store new ones, and which part of long-term state vector it should output at each time step.
+
+## Implementing an LSTM
+
+To implement an LSTM network using Keras, all you need to do is replace the simple RNN layer with an LSTM layer. That's all. For example it is the same stateful model as earlier, but using LSTM layers instead of simple RNN layers.
+
+![lstm_cell_code!](./lstm_cell_code.png)
+
+Alternatively, you can create a generic RNN layer and specify the cell you want to use. In this case, you would give a LSTM cell. The resulting RNN will produce the same output, but it will be much much slower since the LSTM layer implements many optimizations, especially if you're running on a GPU as TensorFlow will take advantage of NVIDIA's CuDNN library which boosts performance dramatically.
+
+![lstm_cell_code2!](./lstm_cell_code2.png)
+
+If you train this model and run it on the validation period, you get this forecasts. It's not fantastic in this case. It gives a mean absolute error of about 5.9. Presumably, you could get better performance by removing the trend, the seasonality, scaling the resulting series, and tuning the hyper-parameters. But it might be a lot of effort for little results in this particular case, since we already got good performance with the previous models.
+
+## Colab: Forecasting with LSTM
+
+https://github.com/tensorflow/examples/blob/master/courses/udacity_intro_to_tensorflow_for_deep_learning/l08c08_forecasting_with_lstm.ipynb
+
+## CNNs
+
+So far we've used a linear model to forecasts time series or dense models with multiple layers, simple RNN with simple RNN cells, using sequence to vector or sequence to sequence. We've built a stateless RNN and stateful RNN and we've used LSTM cells. Now the next architecture we're going to look at is convolutional neural network or ConvNets. In previous courses, you've seen that ConvNets can be tremendously efficient for image processing tasks such as image classification. But now we'll see that they are also very efficient at handling sequence.
+
+A 1-D convolutional layer is exactly like a 2-D convolutional layer except, of course, it slides filters across just one dimension, typically the time axis in a time series instead of sliding them across two dimensions, typically the width and height of an image. For example, it is a simple 1-D convolutional layer with a filter of size three. The filter is also called the kernel. Since the filter size is three, each output is only computed based on three input steps. In this example the layer computes a weighted sum of the values of the first three time steps plus a bias term and it applies an activation function, typically ReLU, and this gives the first output. The layer slides the filter across the input sequence. The first output was computed based on the inputs at time step 0, 1, 2. Now the second output is computed based on the item steps 1, 2, 3.
+
+![cnn_time_series!](./cnn_time_series.png)
+
+![cnn_time_series2!](./cnn_time_series2.png)
+
+![cnn_time_series3!](./cnn_time_series3.png)
+
+So just like a recurrent neural network, a 1-D convolutional layer can handle input sequences of any length. The number of parameters just depends on the kernel size and the number of kernels not on the length of input sequences. However RNN layer has some memory as we can saw, whereas a 1-D convolutional layer has no memory at all. Each output is computed based only on a small window of input time steps, the size of the filter. This may seem like a very serious limitation but as we'll see, once you stack multiple 1-D convolution layers, the top layers end up indirectly sees a large part of the input sequence. So convolutional neuron nets can actually capture very long-term patterns. But before we get there, let's look at some of the hyper parameters we need to set when we define a 1-D convolutional layer. It's very similar to the hyper-parameters of 2-D convolutional layer. First, there is the kernel size, in this example, it's three but you can set it to a larger value if you want. However, just like in 2-D-ConvNet, it's often preferable to stack multiple convolutional layers each with small kernels rather than to use a single convolutional layer with a large kernel. The amount of computations and parameters used when you stacked multiple convolutional layers with small kernels is much smaller and the network is able to learn complex patterns is actually increased.
+
+## Padding
+
+Another hyper-parameter you need to set is the type of padding you want to use. By default, there is no padding at all. This means that the output sequence will be slightly shorter than the input sequence. In this example, since the kernel size is `3`, the output  sequence is two time steps shorter than the input sequence, that's `3` minus `1` step shorter. But if you set padding equals `same` when creating the 1-D dimensional layer, then it will automatically pad the input sequence with enough zeros left to right to ensure that the output sequences has the `same` length as the input sequence, that's why it is called same padding.
+
+![same_padding_time_cnn!](./same_padding_time_cnn.png)
+
+Another type of padding commonly used with 1-D convolutional layer is called causal padding. Instead of padding zero left and right of the input sequence, they are only padded on the left side in the past. Just like with `same` padding, the output sequence has the same length as the input sequence, but now the output at time `t` only depends on inputs at time `t` or before, not on inputs after time `t`. When building a model for forecasting, it's essential to ensure that the model doesn't cheat and use the future values to forecast future values. So causal padding is usually a good choice.
+
+![causal_padding_time_cnn!](./causal_padding_time_cnn.png)
+
+## Stride
+
+Another hyper-parameter you need to choose is the stride. By default, it is equal to `1` meaning the filter slides by one time step at a time. But you can set this to a larger value if you want, for example `2`. In this case, the first output will be a function of the input `0, 1, 2`. Second output will be a function of the input time step `2, 3, 4` and so on. Notice that the output sequence now contains roughly half the number of input time steps. It has roughly half the frequency. This can be used to reduce the amount of computations and shorten the input sequences without losing too much useful information. For example, you could use a convolutional layer with a stride of `2` to shorten the input sequence and pass the resulting shorter sequence to recurrent neural network. If the RNN didn't have enough memory to capture long-term patterns in the original sequence, perhaps once the sequence is shortened the RNN perform better. Also 1-D convolutional layer may learn to perform something like I'm moving average and remove a lot of noise and the inputs which will of course help the RNN. In short, you can use 1-D convolution layers as pre-processing layers before an RNN and it can improve its performance.
+
+![stride_time_cnn!](./stride_time_cnn.png)
+
+## Kernels
+
+You need to define the number of filters you want the 1-D convolutional layer to use. In this example, these are two filters each with its own weights and bias term. So the output sequence will have two values at each time step. In other word, the output sequence dimensionality will be `2`. It's a multivariate time series. The number of filters to use is something you have to tune. If you set it too low, the model will likely perform poorly. But if you set it too high, it would likely overfit the training set and generalize poorly.
+
+![multi_kernels_time_cnn!](./multi_kernels_time_cnn.png)
+
+So here is an example of a model that uses 1-D convolutional layer to preprocess the input sequence before passing it on to a couple of LSTM layers. The convolutional layers uses `32` kernels of size `5` with `causal` padding, stride `1` and `ReLU` activation function. So we can learn to detect short-term patterns that are most useful for RNN.
+
+![time_cnn_code!](./time_cnn_code.png)
+
+## WaveNet
+
+It's actually possible to handle sequences using convolutional layer without any recurrent layers. In fact, using ConNets for sequence processing is becoming increasingly popular, whether it's for time series forecasting or natural language processing. One example is the WaveNet architecture proposed by DeepMind in 2016. Each layer is a 1-D convolution layer with the kernel size `2` stride `1`, `causal`  padding and using the `ReLU` activation function. However, the second convolutional layer uses a dilation rates `2`, meaning that it skips every other input time step. The third convolutional layer uses a dilation rate of `4` meaning that it skips `3` time step out of  `4`. The fourth convolutional layer uses a dilation rate of `8` meaning that it skips `7` time step out of `8` and so on. The dilation rate doubles at every layer. This way the lower layers can learn short-term patterns while the higher layers learn the long-terms patterns. For example, each output of the fourth convolutional layer is a function of `2` to power of `4` equals `16` consecutive time steps. The next layer is a function of `32` consecutive time steps. This is called the layers receptive field. Each convolutional layer we add doubles the receptive field. 
+
+![wave_net!](./wave_net.png)
+
+Here is the Keras code to create a simple WaveNet like model. It's composed of `6` one dimensional convolutional layers with growing dilation rate, double at each layer, and final 1-D convolutional layer with a single kernel of size `1` with stride `1`. This last layer is equivalent to a dense layer in this case. At each time step, it will take `32` inputs from the previous layer, perform a linear combination and output a single value.
+
+![wave_net_code!](./wave_net_code.png)
+
+If you train this model on windows of 64 time steps which is the size of this models receptive field, you get these forecasts, which looks pretty good. The mean absolute error is 4.6. At last, we found a model that performs as well as our initial moving average solution without having de-trend and de-seasonalize the time series
+
+## Colab: Forecasting with CNNs
+
+https://github.com/tensorflow/examples/blob/master/courses/udacity_intro_to_tensorflow_for_deep_learning/l08c09_forecasting_with_cnn.ipynb
+
+In many cases, you'll find that's CNNs actually outperform RNNs. So when you dealing with time series, RNN maybe the way to go in some cases but not always, and you should definitely try out CNNs. 
