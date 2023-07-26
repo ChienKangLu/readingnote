@@ -2198,3 +2198,552 @@ If you train this model on windows of 64 time steps which is the size of this mo
 https://github.com/tensorflow/examples/blob/master/courses/udacity_intro_to_tensorflow_for_deep_learning/l08c09_forecasting_with_cnn.ipynb
 
 In many cases, you'll find that's CNNs actually outperform RNNs. So when you dealing with time series, RNN maybe the way to go in some cases but not always, and you should definitely try out CNNs. 
+
+# NLP: Tokenization and Embeddings
+
+## Introduction to Natural Language Processing
+
+- NLP focuses on analyzing meaning of text and speech
+
+- Starts with recognition - what words are given in text/speech?
+
+- Next, sentiment of these words
+  
+  - Is review positive or negative
+
+- Generate next text
+  
+  - Writing a song or script from scratch
+
+- Focus on text, not speech, in this course
+
+- NLP has many applications:
+  
+  - Sentiment analysis
+  
+  - Dictation
+  
+  - Translation
+  
+  - Voice assistants
+  
+  - Smart Speakers
+  
+  - Smart home devices
+
+- NLP history
+  
+  - Start was around text translation
+    
+    - Often had small, specific corpuses of text
+    
+    - Strict and rule-based
+  
+  - Later morphed to Machine Learning-based approach
+    
+    - Probabilistic models
+    
+    - Large text, speech corpus
+
+![sentiment_analysis!](./sentiment_analysis.png)
+
+## Lesson Outline
+
+In the first lesson on Natural Language Processing with TensorFlow, we’ll focus on Tokenization and Embeddings, which will help convert input text into useful data for input into the neural network layers you’ve seen before.
+
+In the second lesson, we’ll dive into Recurrent Neural Networks (such as the LSTMs you saw in the Time Series Analysis lesson) as well as Text Generation, which allows for the creation of new text.
+
+![nlp_lesson_outline!](./nlp_lesson_outline.png)
+
+## Tokenizing Text
+
+![turn_words_into_numbers!](./turn_words_into_numbers.png)
+
+Tokenizing text
+
+Use `Tokenizer` to tokenize text (to get a number for each word)
+
+```python
+from tesorflow.keras.preprocessing.text import Tokenizer
+```
+
+Use `fit_on_texts()` to turn words into tokens to get the word index. `num_words` means you wanted only the first most common words.
+
+```python
+sentences = [
+    'My favorite food is ice cream',
+    'do you like ice cream too?',
+    'My dog likes ice cream!',
+    "your favorite flavor of icecream is chocolate",
+    "chocolate isn't good for dogs",
+    "your dog, your cat, and your parrot prefer broccoli"
+]
+
+# Optionally set the max number of words to tokenize.
+# The out of vocabulary (OOV) token represents words that are not in the index.
+# Call fit_on_text() on the tokenizer to generate unique numbers for each word
+tokenizer = Tokenizer(num_words = 100, oov_token="<OOV>")
+tokenizer.fit_on_texts(sentences)
+```
+
+From there, you can use the tokenizer to convert sentences into tokenized sequences:
+
+```python
+sequences = tokenizer.texts_to_sequences(sentences)
+print (sequences)
+```
+
+Why do we need an OOV?
+
+- When training a neural network, you train your model with a known dataset and validate and predict with datasets that the model has not seen yet.
+
+- So it's very likely that the validation and prediction text will contain words that are not in the word index.
+
+- However, new sentences may have new words that the tokenizer was not fit on. By default, the tokenizer will just ignore these words and not include them in the tokenized sequences. However, you can also add an “out of vocabulary”, or OOV, token to represent these words. This has to be specified when originally creating the `Tokenizer` object.
+
+## Colab: Tokenizing Text
+
+https://github.com/tensorflow/examples/blob/master/courses/udacity_intro_to_tensorflow_for_deep_learning/l09c01_nlp_turn_words_into_tokens.ipynb
+
+### View the word index
+
+```python
+# Examine the word index
+word_index = tokenizer.word_index
+print(word_index)
+
+# Get the number for a given word
+print(word_index['favorite'])
+```
+
+## Text to Sequences
+
+You need to make sure all sequences has the same length. Here we have sentences with different length.
+
+![differnet_length_sentence!](./differnet_length_sentence.png)
+
+There’s two main ways you can process the input sentences to achieve this - padding the shorter sentences with zeroes, and truncating some of the longer sequences to be shorter. In fact, you’ll likely use some combination of these.
+
+![pad_seq!](./pad_seq.png)
+
+![truncate_seq!](./truncate_seq.png)
+
+![pad_truncate_opt!](./pad_truncate_opt.png)
+
+With TensorFlow, the `pad_sequences` function from `tf.keras.preprocessing.sequence` can be used for both of these tasks. Given a list of sequences, you can specify a `maxlen` (where any sequences longer than that will be cut shorter), as well as whether to pad and truncate from either the beginning or ending, depending on `pre` or `post` settings for the `padding` and `truncating` arguments. By default, <u>padding and truncation will happen from the beginning of the sequence</u>, so set these to `post` if you want it to occur at the end of the sequence.
+
+If you wanted to pad and truncate from the beginning, you could use the following:
+
+```python
+padded = pad_sequences(sequences, maxlen=10)
+```
+
+## Colab: Preparing Text to Use with TensorFlow Models
+
+https://github.com/tensorflow/examples/blob/master/courses/udacity_intro_to_tensorflow_for_deep_learning/l09c02_nlp_padding.ipynb
+
+### Import the classes you need
+
+```python
+# Import Tokenizer and pad_sequences
+from tensorflow.keras.preprocessing.text import Tokenizer
+from tensorflow.keras.preprocessing.sequence import pad_sequences
+```
+
+### Write some sentences
+
+```python
+sentences = [
+    'My favorite food is ice cream',
+    'do you like ice cream too?',
+    'My dog likes ice cream!',
+    "your favorite flavor of icecream is chocolate",
+    "chocolate isn't good for dogs",
+    "your dog, your cat, and your parrot prefer broccoli"
+]
+print(sentences)
+```
+
+### Create the Tokenizer and define an out of vocabulary token
+
+```python
+tokenizer = Tokenizer(num_words = 100, oov_token="<OOV>")
+```
+
+### Tokenize the words
+
+```python
+tokenizer.fit_on_texts(sentences)
+word_index = tokenizer.word_index
+print(word_index)
+```
+
+### Turn sentences into sequences
+
+```python
+sequences = tokenizer.texts_to_sequences(sentences)
+print (sequences)
+```
+
+### Make the sequences all the same length
+
+```python
+padded = pad_sequences(sequences)
+print("\nWord Index = " , word_index)
+print("\nSequences = " , sequences)
+print("\nPadded Sequences:")
+print(padded)
+```
+
+```python
+# Specify a max length for the padded sequences
+padded = pad_sequences(sequences, maxlen=15)
+print(padded)
+```
+
+```python
+# Put the padding at the end of the sequences
+padded = pad_sequences(sequences, maxlen=15, padding="post")
+print(padded)
+```
+
+```python
+# Limit the length of the sequences, you will see some sequences get truncated
+padded = pad_sequences(sequences, maxlen=3)
+print(padded)
+```
+
+### What happens if some of the sentences contain words that are not in the word index?
+
+```python
+# Try turning sentences that contain words that 
+# aren't in the word index into sequences.
+# Add your own sentences to the test_data
+test_data = [
+    "my best friend's favorite ice cream flavor is strawberry",
+    "my dog's best friend is a manatee"
+]
+print (test_data)
+
+# Remind ourselves which number corresponds to the
+# out of vocabulary token in the word index
+print("<OOV> has the number", word_index['<OOV>'], "in the word index.")
+
+# Convert the test sentences to sequences
+test_seq = tokenizer.texts_to_sequences(test_data)
+print("\nTest Sequence = ", test_seq)
+
+# Pad the new sequences
+padded = pad_sequences(test_seq, maxlen=10)
+print("\nPadded Test Sequence: ")
+
+# Notice that "1" appears in the sequence wherever there's a word 
+# that's not in the word index
+print(padded)
+```
+
+### Tokenization of Large Datasets
+
+In the upcoming Colab, we’ll use portions of a [Sentiment Analysis Dataset on Kaggle](https://www.kaggle.com/marklvl/sentiment-labelled-sentences-data-set) that contains both Amazon product and Yelp restaurant reviews.
+
+![reviews_database!](./reviews_database.png)
+
+![prepare_data!](./prepare_data.png)
+
+## Colab: Tokenization of Large Datasets
+
+https://github.com/tensorflow/examples/blob/master/courses/udacity_intro_to_tensorflow_for_deep_learning/l09c03_nlp_prepare_larger_text_corpus.ipynb
+
+### Import
+
+```python
+# Import Tokenizer and pad_sequences
+import tensorflow as tf
+from tensorflow.keras.preprocessing.text import Tokenizer
+from tensorflow.keras.preprocessing.sequence import pad_sequences
+
+# Import numpy and pandas
+import numpy as np
+import pandas as pd
+```
+
+### Get the corpus of text
+
+The combined dataset of reviews has been saved in a Google drive belonging to Udacity. You can download it from there.
+
+```python
+path = tf.keras.utils.get_file('reviews.csv', 
+                               'https://drive.google.com/uc?id=13ySLC_ue6Umt9RJYSeM2t-V0kCv-4C-P')
+print (path)    
+```
+
+### Get the dataset
+
+Each row in the csv file is a separate review.
+
+The csv file has 2 columns:
+
+- **text** (the review)
+- **sentiment** (0 or 1 indicating a bad or good review)
+
+```python
+# Read the csv file
+dataset = pd.read_csv(path)
+
+# Review the first few entries in the dataset
+dataset.head()
+
+# Get the reviews from the text column
+reviews = dataset['text'].tolist()
+```
+
+### Tokenize the text
+
+```python
+tokenizer = Tokenizer(oov_token="")
+tokenizer.fit_on_texts(reviews)
+
+word_index = tokenizer.word_index
+print(len(word_index))
+print(word_index)
+```
+
+### Generate sequences for the reviews
+
+```python
+sequences = tokenizer.texts_to_sequences(reviews)
+padded_sequences = pad_sequences(sequences, padding='post')
+
+# What is the shape of the vector containing the padded sequences?
+# The shape shows the number of sequences and the length of each one.
+print(padded_sequences.shape)
+
+# What is the first review?
+print (reviews[0])
+
+# Show the sequence for the first review
+print(padded_sequences[0])
+
+# Try printing the review and padded sequence for other elements.
+```
+
+## Word Embeddings
+
+You can consider 
+
+- Embeddings as a cluster of vectors in multi-dimensional space
+
+- Each vector represents a given word in that space
+
+While it’s difficult for us humans to think in many dimensions, luckily the [TensorFlow Projector](http://projector.tensorflow.org/) makes it fairly easy for us to view these clusters in a 3D projection (later Colabs will generate the necessary files for use with the projection tool).
+
+This can be very useful for sentiment analysis models, where you’d expect to see clusters around either more positive or more negative sentiment associated with each word.
+
+![sentiment_projection!](./sentiment_projection.png)
+
+## Building a Basic Sentiment Model
+
+To create our embeddings, we’ll first use an embeddings layer, called [tf.keras.layers.Embedding](https://www.tensorflow.org/api_docs/python/tf/keras/layers/Embedding). This takes three arguments: the size of the tokenized vocabulary, the number of embedding dimensions to use, as well as the input length (from when you standardized sequence length with padding and truncation).
+
+The output of this layer needs to be reshaped to work with any fully-connected layers. You can do this with a pure `Flatten` layer, or use `GlobalAveragePooling1D` for a little additional computation that sometimes creates better results.
+
+In our case, we’re only looking at positive vs. negative sentiment, so only a single output node is needed (0 for negative, 1 for positive). You’ll be able to use a binary cross entropy loss function since the result is only binary classification.
+
+![building_basic_sentiment_model!](./building_basic_sentiment_model.png)
+
+## Visualizing Embeddings
+
+## Colab: Word Embeddings and Sentiment
+
+https://github.com/tensorflow/examples/blob/master/courses/udacity_intro_to_tensorflow_for_deep_learning/l09c04_nlp_embeddings_and_sentiment.ipynb
+
+### Get the dataset
+
+```python
+!wget --no-check-certificate \
+    -O /tmp/sentiment.csv https://drive.google.com/uc?id=13ySLC_ue6Umt9RJYSeM2t-V0kCv-4C-P
+```
+
+```python
+import numpy as np
+import pandas as pd
+
+dataset = pd.read_csv('/tmp/sentiment.csv')
+
+sentences = dataset['text'].tolist()
+labels = dataset['sentiment'].tolist()
+
+# Separate out the sentences and labels into training and test sets
+training_size = int(len(sentences) * 0.8)
+
+training_sentences = sentences[0:training_size]
+testing_sentences = sentences[training_size:]
+training_labels = labels[0:training_size]
+testing_labels = labels[training_size:]
+
+# Make labels into numpy arrays for use with the network later
+training_labels_final = np.array(training_labels)
+testing_labels_final = np.array(testing_labels)
+```
+
+### Tokenize the dataset
+
+```python
+vocab_size = 1000
+embedding_dim = 16
+max_length = 100
+trunc_type='post'
+padding_type='post'
+oov_tok = ""
+
+
+from tensorflow.keras.preprocessing.text import Tokenizer
+from tensorflow.keras.preprocessing.sequence import pad_sequences
+
+tokenizer = Tokenizer(num_words = vocab_size, oov_token=oov_tok)
+tokenizer.fit_on_texts(training_sentences)
+word_index = tokenizer.word_index
+sequences = tokenizer.texts_to_sequences(training_sentences)
+padded = pad_sequences(sequences,maxlen=max_length, padding=padding_type, 
+                       truncating=trunc_type)
+
+testing_sequences = tokenizer.texts_to_sequences(testing_sentences)
+testing_padded = pad_sequences(testing_sequences,maxlen=max_length, 
+                               padding=padding_type, truncating=trunc_type)
+```
+
+### Review a Sequence
+
+```python
+reverse_word_index = dict([(value, key) for (key, value) in word_index.items()])
+
+def decode_review(text):
+    return ' '.join([reverse_word_index.get(i, '?') for i in text])
+
+print(decode_review(padded[1]))
+print(training_sentences[1])
+```
+
+### Train a Basic Sentiment Model with Embeddings
+
+```python
+# Build a basic sentiment network
+# Note the embedding layer is first, 
+# and the output is only 1 node as it is either 0 or 1 (negative or positive)
+model = tf.keras.Sequential([
+    tf.keras.layers.Embedding(vocab_size, embedding_dim, input_length=max_length),
+    tf.keras.layers.Flatten(),
+    tf.keras.layers.Dense(6, activation='relu'),
+    tf.keras.layers.Dense(1, activation='sigmoid')
+])
+model.compile(loss='binary_crossentropy',optimizer='adam',metrics=['accuracy'])
+model.summary()
+```
+
+```python
+num_epochs = 10
+model.fit(padded, training_labels_final, epochs=num_epochs, validation_data=(testing_padded, testing_labels_final))
+```
+
+### Predicting Sentiment in New Reviews
+
+```python
+# Use the model to predict a review   
+fake_reviews = ['I love this phone', 'I hate spaghetti', 
+                'Everything was cold',
+                'Everything was hot exactly as I wanted', 
+                'Everything was green', 
+                'the host seated us immediately',
+                'they gave us free chocolate cake', 
+                'not sure about the wilted flowers on the table',
+                'only works when I stand on tippy toes', 
+                'does not work when I stand on my head']
+
+print(fake_reviews) 
+
+# Create the sequences
+padding_type='post'
+sample_sequences = tokenizer.texts_to_sequences(fake_reviews)
+fakes_padded = pad_sequences(sample_sequences, padding=padding_type, maxlen=max_length)           
+
+print('\nHOT OFF THE PRESS! HERE ARE SOME NEWLY MINTED, ABSOLUTELY GENUINE REVIEWS!\n')              
+
+classes = model.predict(fakes_padded)
+
+# The closer the class is to 1, the more positive the review is deemed to be
+for x in range(len(fake_reviews)):
+  print(fake_reviews[x])
+  print(classes[x])
+  print('\n')
+
+# Try adding reviews of your own
+# Add some negative words (such as "not") to the good reviews and see what happens
+# For example:
+# they gave us free chocolate cake and did not charge us
+```
+
+## Tweaking the Model
+
+```python
+vocab_size = 500
+embedding_dim = 16
+max_length = 50
+trunc_type='post'
+padding_type='post'
+oov_tok = "<OOV>"
+```
+
+```python
+model = tf.keras.Sequential([
+    tf.keras.layers.Embedding(vocab_size, embedding_dim, input_length=max_length),
+    tf.keras.layers.GlobalAveragePooling1D(),
+    tf.keras.layers.Dense(6, activation='relu'),
+    tf.keras.layers.Dense(1, activation='sigmoid')
+])
+model.compile(loss='binary_crossentropy',optimizer='adam',metrics=['accuracy'])
+model.summary()
+
+num_epochs = 30
+history = model.fit(training_padded, training_labels_final, epochs=num_epochs, validation_data=(testing_padded, testing_labels_final))
+```
+
+## Colab: Tweaking the Model
+
+https://github.com/tensorflow/examples/blob/master/courses/udacity_intro_to_tensorflow_for_deep_learning/l09c05_nlp_tweaking_the_model.ipynb
+
+## What's in a (sub)word
+
+![subword_example!](./subword_example.png)
+
+### Subword Datasets
+
+There are a number of already created subwords datasets available online. If you check out the [IMDB dataset on TFDS](https://www.tensorflow.org/datasets/catalog/imdb_reviews), for instance, by scrolling down you can see datasets with both 8,000 subwords as well as 32,000 subwords in a corpus (along with regular full-word datasets).
+
+However, I want you to know how to create these yourself as well, so we’ll use TensorFlow’s SubwordTextEncoder and [its `build_from_corpus` function](https://www.tensorflow.org/datasets/api_docs/python/tfds/features/text/SubwordTextEncoder#build_from_corpus) to create one from the reviews dataset we used previously.
+
+## Colab: What's in a (sub)word?
+
+https://colab.sandbox.google.com/github/tensorflow/examples/blob/master/courses/udacity_intro_to_tensorflow_for_deep_learning/l09c06_nlp_subwords.ipynb
+
+## Lesson Conclusion
+
+You’ve already learned an amazing amount of material on Natural Language Processing with TensorFlow in this lesson.
+
+You started with Tokenization by:
+
+- Tokenizing input text
+- Creating and padding sequences
+- Incorporating out of vocabulary words
+- Generalizing tokenization and sequence methods to real world datasets
+
+From there, you moved onto Embeddings, where you:
+
+- transformed tokenized sequences into embeddings
+- developed a basic sentiment analysis model
+- visualized the embeddings vector
+- tweaked hyperparameters of the model to improve it
+- and diagnosed potential issues with using pre-trained subword tokenizers when the network doesn’t have sequence context
+
+In the next lesson, you’ll dive into Recurrent Neural Networks, which will be able to understand the sequence of inputs, and you'll learn how to generate new text.
+
+![tokenization_embedding!](./tokenization_embedding.png)
