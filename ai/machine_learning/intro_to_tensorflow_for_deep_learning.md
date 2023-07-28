@@ -2747,3 +2747,95 @@ From there, you moved onto Embeddings, where you:
 In the next lesson, you’ll dive into Recurrent Neural Networks, which will be able to understand the sequence of inputs, and you'll learn how to generate new text.
 
 ![tokenization_embedding!](./tokenization_embedding.png)
+
+# NLP: Recurrent Neural Networks
+
+## Recurrent Neural Networks Intro
+
+![nlp_rnn_outline!](./nlp_rnn_outline.png)
+
+In the previous lesson on Natural Language Processing with TensorFlow, we focused on Tokenization and Embeddings, which helped convert text into useful data for input into neural networks. However, these networks were not yet able to consider the actual sequence of the words in the input.
+
+In this second lesson, we’ll dive into Recurrent Neural Networks (such as the LSTMs you saw in the Time Series Analysis lesson) as well as Text Generation, which allows for the creation of new text.
+
+## Basics of RNNs
+
+Recurrent Neural Networks (RNNs) still take in some input x and output some y, but they also feed some of the output of the network back into itself. This may be done over and over, so that with text input, the network has some memory of words that came much earlier in a sequence.
+
+![rnn_basic!](./rnn_basic.png)
+
+![rnn_basic2!](./rnn_basic2.png)
+
+![rnn_application!](./rnn_application.png)
+
+![rnn_basic3!](./rnn_basic3.png)
+
+![rnn_basic4!](./rnn_basic4.png)
+
+## Sentence Context and LSTMs
+
+Simple RNNs are not always enough when working with text data. Longer sequences, such as a paragraph, often are difficult to handle, as the simple RNN structure loses information about previous inputs fairly quickly.
+
+Long Short-Term Memory models, or LSTMs, help resolve this by keeping a “cell state” across time. These include a “forget gate”, where the cell can choose whether to keep or forget certain words to carry forward in the sequence.
+
+Another interesting aspect of LSTMs is that they can be bidirectional, meaning that information can be passed both forward (later in the text sequence) and backward (earlier in the text sequence).
+
+## Colab: Constructing LSTMs in Code
+
+https://github.com/tensorflow/examples/blob/master/courses/udacity_intro_to_tensorflow_for_deep_learning/l10c01_nlp_lstms_with_reviews_subwords_dataset.ipynb
+
+## LSTMs vs. Convolutions vs. GRUs
+
+![embedding_only!](./embedding_only.png)
+
+![embedding_only_parameter!](./embedding_only_parameter.png)
+
+![cnn_text!](./cnn_text.png)
+
+![cnn_text_parameter!](./cnn_text_parameter.png)
+
+![gru!](./gru.png)
+
+![gru_model!](./gru_model.png)
+
+![lstm_model!](./lstm_model.png)
+
+![stack_lstm_model!](./stack_lstm_model.png)
+
+## Colab: LSTMs vs. Convolutions vs. GRUs
+
+https://github.com/tensorflow/examples/blob/master/courses/udacity_intro_to_tensorflow_for_deep_learning/l10c02_nlp_multiple_models_for_predicting_sentiment.ipynb
+
+Using SST 2 datasets, movie reviews, 70000 items
+
+- 67000 for training
+
+## Text Generation
+
+Text generation can be done through simply predicting the next most likely word, given an input sequence. This can be done over and over by feeding the original input sequence, plus the newly predicted end word, as the next input sequence to the model. As such, the full output generated from a very short original input can effectively go on however long you want it to be.
+
+The only real change to the network here is the output layer will now be equivalent to a node per each possible new word to generate - so, if you have 1,000 possible words in your corpus, you’d have an output array of length 1,000. You’ll also need to change the loss function from binary cross-entropy to categorical cross entropy - before, we had only a 0 or 1 as output, now there are potentially thousands of output “classes” (each possible word).
+
+![text_generation!](./text_generation.png)
+
+![text_generation_example!](./text_generation_example.png)
+
+## Colab: Constructing a Text Generation Model
+
+https://github.com/tensorflow/examples/blob/master/courses/udacity_intro_to_tensorflow_for_deep_learning/l10c03_nlp_constructing_text_generation_model.ipynb
+
+## Optimizing the Text Generation Model
+
+There are a number of ways you might improve your text generation models:
+
+- Using more data?
+  - You’ll need to consider memory and output size constraints
+  - Also consider using only top-k most common words
+- Know your data - songs have many more words than a Tweet
+- Keep tuning your model
+  - Add/subtract from layer sizes or embedding dimensions
+- Use [np.random.choice](https://docs.scipy.org/doc/numpy-1.15.0/reference/generated/numpy.random.choice.html) with the probabilities for more variance in predicted outputs
+
+## Colab: Optimizing the Text Generation Model
+
+https://github.com/tensorflow/examples/blob/master/courses/udacity_intro_to_tensorflow_for_deep_learning/l10c04_nlp_optimizing_the_text_generation_model.ipynb
