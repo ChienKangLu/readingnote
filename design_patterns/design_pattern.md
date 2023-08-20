@@ -17,3 +17,7 @@
 - [Facade](./structural_patterns/structural_patterns_facade.md)
 - [Flyweight](./structural_patterns/structural_patterns_flyweight.md)
 - [Proxy](./structural_patterns/structural_patterns_proxy.md)
+
+Behavioral patterns
+
+- [Chain of Responsibility](./behavioral_patterns/behavioral_patterns_chain_of_responsibility.md)
