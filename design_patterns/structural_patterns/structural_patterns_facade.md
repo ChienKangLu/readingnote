@@ -6,6 +6,8 @@
 
 - Facade defines a higher-level interface that makes subsystem easier to use.
 
+- A facade is used to allow the user to perform complex processes with simple actions.
+
 ## Motivation
 
 - Minimize the communication and dependencies between subsystems.

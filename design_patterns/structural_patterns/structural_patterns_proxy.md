@@ -2,7 +2,11 @@
 
 ## Intent
 
-Provide a surrogate or placeholder for another object ti control access to it.
+- Provide a surrogate or placeholder for another object ti control access to it.
+
+- A proxy is used as a source of replacement for a real object. It literally means a substitute for the real thing.
+
+- An application has an expensive call to a database that isn't needed at startup time.
 
 ## Motivation
 
@@ -11,6 +15,8 @@ Provide a surrogate or placeholder for another object ti control access to it.
 - Creating each expensive object *on demand*
 
 ![proxy_example!](./img/proxy_example.svg)
+
+- In real life, a good example of a proxy is a bank card. Instead of paying with the real money in your accounts, your bank card acts as a proxy and allows you to access. the actual money when you need it
 
 ## Applicability
 

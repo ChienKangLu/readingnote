@@ -2,7 +2,9 @@
 
 ## Intent
 
-Convert the interface of a class into another interface clients expect.
+- Convert the interface of a class into another interface clients expect.
+
+- What if you want to use a class that belongs to a third party app, but it doesn't fit with your app because of incompatible interfaces. The adapter pattern provides a way for classes to work together that normally wouldn't be able to.
 
 ## Motivation
 

@@ -22,3 +22,4 @@ Behavioral patterns
 
 - [Chain of Responsibility](./behavioral_patterns/behavioral_patterns_chain_of_responsibility.md)
 - [Command](./behavioral_patterns/behavioral_patterns_command.md)
+- [Interpreter](./behavioral_patterns/behavioral_patterns_interpreter.md)
