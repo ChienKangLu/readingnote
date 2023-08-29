@@ -18,7 +18,7 @@
 - [Flyweight](./structural_patterns/structural_patterns_flyweight.md)
 - [Proxy](./structural_patterns/structural_patterns_proxy.md)
 
-Behavioral patterns
+## Behavioral patterns
 
 - [Chain of Responsibility](./behavioral_patterns/behavioral_patterns_chain_of_responsibility.md)
 - [Command](./behavioral_patterns/behavioral_patterns_command.md)
@@ -26,3 +26,4 @@ Behavioral patterns
 - [Iterator](./behavioral_patterns/behavioral_patterns_iterator.md)
 - [Mediator](./behavioral_patterns/behavioral_patterns_mediator.md)
 - [Memento](./behavioral_patterns/behavioral_patterns_memento.md)
+- [Observer](./behavioral_patterns/behavioral_patterns_observer.md)

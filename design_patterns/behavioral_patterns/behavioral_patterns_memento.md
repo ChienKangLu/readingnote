@@ -61,5 +61,3 @@ Use the Memento pattern when
 - Defining narrow and wide interfaces
 
 - Hidden costs in caring for mementos
-
-
