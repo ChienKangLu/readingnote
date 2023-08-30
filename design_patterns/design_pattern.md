@@ -27,3 +27,4 @@
 - [Mediator](./behavioral_patterns/behavioral_patterns_mediator.md)
 - [Memento](./behavioral_patterns/behavioral_patterns_memento.md)
 - [Observer](./behavioral_patterns/behavioral_patterns_observer.md)
+- [State](./behavioral_patterns/behavioral_patterns_state.md)
