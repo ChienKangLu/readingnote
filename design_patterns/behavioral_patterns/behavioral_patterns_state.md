@@ -75,5 +75,3 @@ The class TCPConnection maintains a state object that represents the current sta
    - Create State objects only when they are needed and destroy them thereafter (contexts change state infrequently)
    
    - Creating them ahead of time and never destroying them (changes occur rapidly)
-
-

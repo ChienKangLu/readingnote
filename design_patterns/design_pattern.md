@@ -28,3 +28,4 @@
 - [Memento](./behavioral_patterns/behavioral_patterns_memento.md)
 - [Observer](./behavioral_patterns/behavioral_patterns_observer.md)
 - [State](./behavioral_patterns/behavioral_patterns_state.md)
+- [Strategy](./behavioral_patterns/behavioral_patterns_strategy.md)
