@@ -71,7 +71,3 @@ A **Composition** maintains a reference to a **Compositor** object. Whenever a *
    2. it does not have to be changes at run-time
 
 3. *Making Strategy objects optional*. Context carries out default behavior
-
-
-
-
